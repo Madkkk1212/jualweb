@@ -19,6 +19,13 @@ export const metadata: Metadata = {
     "harga website UMKM Jambi",
     "harga website company profile Jambi",
     "LumaSpace harga paket",
+    "harga buat landing page Jambi",
+    "harga buat toko online Jambi",
+    "biaya bikin web e-commerce Jambi",
+    "website murah mulai 299rb Jambi",
+    "paket website company profile Jambi",
+    "biaya maintenance website Jambi",
+    "jasa pemeliharaan website murah Jambi",
   ],
   alternates: {
     canonical: "/pricing",

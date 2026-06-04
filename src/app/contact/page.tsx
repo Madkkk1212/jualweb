@@ -14,6 +14,12 @@ export const metadata: Metadata = {
     "WhatsApp jasa website Jambi",
     "order website Jambi",
     "pesan website di Jambi",
+    "nomor telepon LumaSpace Jambi",
+    "alamat LumaSpace Jambi",
+    "tanya jasa website Jambi",
+    "email LumaSpace",
+    "instagram LumaSpace website",
+    "chat whatsapp developer web jambi",
   ],
   alternates: {
     canonical: "/contact",

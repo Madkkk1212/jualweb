@@ -18,6 +18,11 @@ export const metadata: Metadata = {
     "berapa harga website di Jambi",
     "cara order website Jambi",
     "jasa website Jambi terpercaya",
+    "apakah dapat source code website",
+    "revisi pembuatan website Jambi",
+    "syarat pembuatan website Jambi",
+    "apakah ada biaya perpanjangan web",
+    "cara kelola website sendiri",
   ],
   alternates: {
     canonical: "/faq",

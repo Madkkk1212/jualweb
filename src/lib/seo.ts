@@ -6,7 +6,7 @@ export const siteConfig = {
   description:
     "LumaSpace — jasa pembuatan website profesional di Jambi. Spesialis website dealer mobil, bimbel, umroh haji, konstruksi, company profile, toko online, dan landing page UMKM. Desain premium, SEO-friendly, harga mulai Rp299.000. Hubungi kami sekarang!",
   // ⚠️ URL aktual deployment — harus sama persis dengan domain yang live
-  url: "https://lumaspace.vercel.app",
+  url: "https://lumaspace.web.id",
   locale: "id_ID",
   country: "ID",
   email: "lumaspace@gmail.com",
@@ -18,7 +18,7 @@ export const siteConfig = {
   addressCountry: "ID",
   // ─── Master keyword list (dipakai di root layout) ────────────────────────
   keywords: [
-    // High-intent jual/beli
+    // High-intent jual/beli Jambi
     "jual website Jambi",
     "jual web Jambi",
     "beli website Jambi",
@@ -31,12 +31,69 @@ export const siteConfig = {
     "website profesional Jambi",
     "bikin website Jambi",
     "buat website Jambi",
+    "jasa web design Jambi",
+    "jasa pembuatan web Jambi murah",
+    "developer website Jambi",
+    "pembuatan landing page Jambi",
+    "toko online Jambi",
+    "buat e-commerce Jambi",
+    "jasa seo Jambi",
+    "jasa pasang iklan google Jambi",
+    
+    // Kabupaten & Wilayah Sekitar Jambi (Local SEO Daerah)
+    "jasa pembuatan website Muaro Jambi",
+    "jasa pembuatan website Bungo",
+    "jasa pembuatan website Tebo",
+    "jasa pembuatan website Sarolangun",
+    "jasa pembuatan website Merangin",
+    "jasa pembuatan website Kerinci",
+    "jasa pembuatan website Sungai Penuh",
+    "jasa pembuatan website Tanjung Jabung Barat",
+    "jasa pembuatan website Kuala Tungkal",
+    "jasa pembuatan website Tanjung Jabung Timur",
+    "jasa pembuatan website Muara Sabak",
+    "jasa pembuatan website Bangko",
+    "jasa pembuatan website Sengeti",
+    "jasa pembuatan website Muara Bulian",
+    "jasa pembuatan website Batanghari",
+    
+    // High-intent Nasional (Indonesia)
+    "jasa pembuatan website profesional",
+    "jasa pembuatan website murah",
+    "jasa pembuatan website toko online",
+    "jasa pembuatan website company profile",
+    "jasa buat landing page konversi",
+    "jasa bikin web murah",
+    "jasa desain website premium",
+    "jasa website profesional indonesia",
+    "jasa web developer terpercaya",
+    "jasa pembuatan web app custom",
+    "jasa seo website murah",
+    "jasa buat website landing page murah",
+    "jasa web instan indonesia",
+    "jasa buat blog murah",
+    "jasa pembuatan web app nextjs",
+    "jasa pembuatan web react",
+    "jasa pembuatan website cepat",
+    "jasa maintenance website",
+    "jasa optimasi kecepatan website",
+    "jasa redesign website",
+    "jasa pemeliharaan website",
+    
     // Niche — Dealer & Otomotif
     "jual website dealer mobil Jambi",
     "website dealer mobil Jambi",
     "jasa website dealer Jambi",
     "website showroom mobil Jambi",
     "jasa website otomotif",
+    "website sales mobil Jambi",
+    "website dealer honda toyota jambi",
+    "website sales toyota jambi",
+    "website sales honda jambi",
+    "website sales mitsubishi jambi",
+    "website sales suzuki jambi",
+    "website sales daihatsu jambi",
+    
     // Niche — Bimbel & Pendidikan
     "jual website bimbel Jambi",
     "jasa website bimbel Jambi",
@@ -44,31 +101,59 @@ export const siteConfig = {
     "website sekolah Jambi",
     "website LMS Jambi",
     "jasa website pendidikan Jambi",
+    "website les privat Jambi",
+    "website yayasan pendidikan jambi",
+    
     // Niche — Umroh & Travel
     "jual website umroh Jambi",
     "jasa website travel umroh Jambi",
     "website travel haji umroh Jambi",
     "website agen perjalanan Jambi",
+    "website tour and travel Jambi",
+    "website tour guide jambi",
+    
     // Niche — Konstruksi & Property
     "jual website konstruksi Jambi",
     "jasa website kontraktor Jambi",
     "website perusahaan konstruksi Jambi",
     "website property Jambi",
-    // Niche — F&B
+    "website agen properti Jambi",
+    "website perumahan Jambi",
+    "website kos kosan jambi",
+    "website developer perumahan jambi",
+    
+    // Niche — F&B & Kuliner
     "jual website restoran Jambi",
     "jasa website kuliner Jambi",
     "website catering Jambi",
     "website UMKM makanan Jambi",
-    // Niche — E-Commerce & Skincare
+    "website warkop cafe Jambi",
+    "website restoran jambi",
+    
+    // Niche — E-Commerce & Skincare & Fashion
     "jual website toko online Jambi",
     "jasa website e-commerce Jambi",
     "website skincare Jambi",
     "jasa toko online Jambi",
-    // Niche — Company Profile
+    "website olshop Jambi",
+    "website butik fashion Jambi",
+    "website klinik kecantikan jambi",
+    "website salon kecantikan jambi",
+    
+    // Niche — Company Profile & Undangan & Lainnya
     "jual website company profile Jambi",
     "jasa website company profile Jambi",
     "website profil perusahaan Jambi",
-    // General
+    "website portofolio bisnis Jambi",
+    "website undangan pernikahan digital jambi",
+    "jasa buat undangan online jambi",
+    "website portofolio fotografer jambi",
+    "website rental mobil jambi",
+    "website hotel jambi",
+    "website masjid jambi",
+    "website yayasan jambi",
+    
+    // General & Brand
     "jasa pembuatan website",
     "jasa website UMKM",
     "jasa landing page",
@@ -77,6 +162,7 @@ export const siteConfig = {
     "lumaspace",
     "luma space",
     "LumaSpace Jambi",
+    "LumaSpace Web Developer",
   ],
 };
 

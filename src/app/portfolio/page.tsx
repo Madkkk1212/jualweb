@@ -23,6 +23,11 @@ export const metadata: Metadata = {
     "Reiwa LMS website",
     "PT Gemilang Aksara Sejahtera website",
     "Bimbel Luma website",
+    "contoh toko online Jambi",
+    "contoh landing page Jambi",
+    "website travel umroh Jambi live",
+    "contoh website sekolah Jambi",
+    "demo website dealer mobil Jambi",
   ],
   alternates: {
     canonical: "/portfolio",

@@ -13,6 +13,11 @@ export const metadata: Metadata = {
     "berapa lama buat website Jambi",
     "proses bikin website profesional",
     "LumaSpace alur kerja",
+    "tahapan pembuatan website Jambi",
+    "desain mockup website Jambi",
+    "proses revisi website LumaSpace",
+    "durasi pengerjaan website Jambi",
+    "langkah serah terima website",
   ],
   alternates: {
     canonical: "/process",

@@ -16,11 +16,11 @@ export const WhatsAppFloat = () => {
           animate={{ opacity: 1, scale: 1 }}
           className="relative group"
         >
-          <div className="absolute inset-0 bg-accent-green/30 rounded-full md:rounded-2xl animate-ping" />
+          <div className="absolute inset-0 bg-accent-green/15 rounded-full md:rounded-2xl animate-ping" />
 
-          <div className="glass bg-accent-green hover:bg-accent-green/90 transition-colors px-4 py-4 md:px-5 rounded-full md:rounded-2xl shadow-[0_0_30px_rgba(0,255,133,0.4)] border-none text-black flex items-center gap-3 font-bold">
-            <MessageCircle className="h-6 w-6 md:h-7 md:w-7" />
-            <span className="hidden md:inline">Chat WhatsApp</span>
+          <div className="glass bg-zinc-950/70 border border-accent-green/20 hover:border-accent-green/40 hover:bg-zinc-900/80 transition-all duration-300 px-4 py-4 md:px-5 rounded-full md:rounded-2xl shadow-premium text-accent-green flex items-center gap-3 font-bold">
+            <MessageCircle className="h-6 w-6 md:h-7 md:w-7 fill-accent-green/10" />
+            <span className="hidden md:inline text-white">Chat WhatsApp</span>
           </div>
 
           <div className="absolute right-[calc(100%+12px)] top-1/2 -translate-y-1/2 hidden md:block opacity-0 group-hover:opacity-100 transition-opacity glass px-4 py-2 rounded-lg border-white/10 whitespace-nowrap text-sm font-bold text-white shadow-2xl pointer-events-none">
