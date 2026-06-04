@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Smart Router (Handle Pretty URLs) -->
+    <script src="js/router.js"></script>
+
+    <!-- Primary SEO -->
+    <title>Sewa Baju Adat Jambi #1 - Kostum Adat Nusantara (Kota Jambi)</title>
+    <meta name="description"
+        content="Penyewaan Baju Adat Jambi Terlengkap di Kota Jambi. Kostum Adat Nusantara menyediakan sewa pakaian adat 38 provinsi, Jas formal, dan Jasco untuk dewasa & anak. Kualitas premium, harga terjangkau!" />
+    <meta name="keywords"
+        content="sewa baju adat jambi, penyewaan jambi, baju adat jambi, sewa baju jambi, kostum adat jambi, jasco jambi, jas jambi, persewaan jambi, lebak bandung jambi" />
+    <meta name="robots" content="index,follow" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+    <!-- Canonical (ganti dengan domain asli saat publish) -->
+    <link rel="canonical" href="https://kostum-adatnusantara.vercel.app/index" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:site_name" content="Kostum Adat Nusantara" />
+    <meta property="og:title" content="Penyewaan Baju Adat Jambi #1 - Kostum Adat Nusantara" />
+    <meta property="og:description"
+        content="Pusat penyewaan baju adat Jambi terlengkap di Kota Jambi. Koleksi 38 provinsi, Jas, dan Jasco tersedia untuk dewasa dan anak-anak." />
+    <meta property="og:url" content="https://kostum-adatnusantara.vercel.app" />
+    <meta property="og:image" content="https://kostum-adatnusantara.vercel.app/image/logo.png" />
+    <meta property="og:image:alt" content="Logo Kostum Adat Nusantara" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Kostum Adat Nusantara - Sewa Pakaian Adat, Jas & Jasco Jambi" />
+    <meta name="twitter:description"
+        content="Sewa pakaian adat Nusantara, Jas, dan Jasco terbaik di Jambi. Cek galeri koleksi kami!" />
+    <meta name="twitter:image" content="https://kostum-adatnusantara.vercel.app/image/logo.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" href="image/logo.png" type="image/png" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Poppins:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    
+    <!-- Smooth Scroll (Lenis) -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.33/dist/lenis.min.js"></script>
+
+    <!-- Advanced SEO Schema (LocalBusiness & FAQ) -->
+    <script type="application/ld+json">
+        [
+            {
+                "@context": "https://schema.org",
+                "@type": "ClothingStore",
+                "name": "Kostum Adat Nusantara - Penyewaan Baju Adat Jambi",
+                "image": "https://kostum-adatnusantara.vercel.app/image/logo.png",
+                "description": "Pusat penyewaan baju adat Jambi terlengkap di Kota Jambi (Lebak Bandung). Menyediakan pakaian adat 38 provinsi Nusantara, Jas formal, dan Jasco kualitas premium.",
+                "address": {
+                    "@type": "PostalAddress",
+                    "streetAddress": "Jl. Penyengat, Perumahan Kreasi Pura, Lebak Bandung",
+                    "addressLocality": "Kota Jambi",
+                    "addressRegion": "Jambi",
+                    "postalCode": "36111",
+                    "addressCountry": "ID"
+                },
+                "geo": {
+                    "@type": "GeoCoordinates",
+                    "latitude": -1.6085411,
+                    "longitude": 103.605985
+                },
+                "telephone": "+6282323431676",
+                "priceRange": "$$",
+                "url": "https://kostum-adatnusantara.vercel.app",
+                "openingHoursSpecification": [
+                    {
+                        "@type": "OpeningHoursSpecification",
+                        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                        "opens": "08:00",
+                        "closes": "21:00"
+                    }
+                ]
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "Di mana tempat sewa baju adat terlengkap di Jambi?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Kostum Adat Nusantara adalah tempat sewa baju adat terlengkap di Jambi, berlokasi di Lebak Bandung. Kami menyediakan koleksi dari 38 provinsi."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Apakah tersedia sewa Jas dan Jasco di Jambi?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Ya, selain pakaian adat, kami juga menyewakan Jas formal dan Jasco premium di Jambi untuk berbagai acara seperti pernikahan dan wisuda."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Berapa lama durasi sewa pakaian adat di Kostum Adat Nusantara?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Durasi sewa standar adalah 3 hari, namun kami memberikan fleksibilitas sesuai dengan kebutuhan acara Anda."
+                        }
+                    }
+                ]
+            }
+        ]
+    </script>
+
+    <style>
+        :root {
+            --primary: #5D0E0E;
+            --secondary: #C5A059;
+            --accent: #FFD700;
+            --light: #FAF9F6;
+            --dark: #1A0F0A;
+            --text: #2D2D2D;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            --gradient: linear-gradient(135deg, #5D0E0E 0%, #8B0000 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Lenis Smooth Scroll setup */
+        html.lenis {
+            height: auto;
+        }
+        .lenis-smooth {
+            scroll-behavior: auto !important;
+        }
+        .lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+        .lenis-stopped {
+            overflow: hidden;
+        }
+        .lenis-scrolling iframe {
+            pointer-events: none;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light);
+            color: var(--text);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        /* Preloader */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        #preloader.loaded {
+            transform: translateY(-100%);
+            pointer-events: none;
+        }
+
+        .loader-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        .loader-bar {
+            width: 200px;
+            height: 2px;
+            background: rgba(255, 215, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loader-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0;
+            background: var(--accent);
+            animation: progress 2.5s ease-in-out forwards;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-15px) scale(0.95); }
+        }
+
+        @keyframes progress {
+            to { width: 100%; }
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 80px 20px;
+            background: linear-gradient(rgba(44, 24, 16, 0.9), rgba(139, 0, 0, 0.85)),
+                url('/image/bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+            background-size: cover;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 5rem;
+            color: white;
+            margin-bottom: 20px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            font-size: 1.6rem;
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            color: rgba(255, 255, 255, 0.9);
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 50px;
+            color: white;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--accent);
+            font-family: 'Playfair Display', serif;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.8;
+        }
+
+        .hero-btns {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 18px 40px;
+            background: var(--gradient);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.05rem;
+            border-radius: 50px;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(139, 0, 0, 0.3);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-8px) scale(1.04);
+            box-shadow: 0 20px 40px rgba(139, 0, 0, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: var(--secondary);
+            color: var(--dark);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(60px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 1000px;
+            }
+
+            .hero h1 {
+                font-size: 4rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .container {
+                max-width: 750px;
+            }
+
+            .hero h1 {
+                font-size: 3rem;
+            }
+
+            .hero p {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 30px;
+            }
+
+            .hero {
+                padding: 100px 30px 60px;
+            }
+
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+
+            .hero p {
+                font-size: 1.15rem;
+            }
+
+            .hero-btns {
+                flex-direction: column;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 360px;
+                text-align: center;
+                padding: 18px 28px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                padding: 0 25px;
+            }
+
+            .hero {
+                padding: 90px 25px 50px;
+            }
+
+            .hero h1 {
+                font-size: 2.4rem;
+            }
+
+            .hero p {
+                font-size: 1.05rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Premium Preloader -->
+    <div id="preloader">
+        <img src="image/logo.png" alt="Logo" class="loader-logo">
+        <div class="loader-bar">
+            <div class="loader-progress"></div>
+        </div>
+    </div>
+    <!-- Include Navbar -->
+    <div id="navbar-container"></div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Sewa Baju Adat Jambi Terlengkap (Kota Jambi)</h1>
+                <p>Penyedia jasa sewa baju jambi terlengkap (Lebak Bandung, Kota Jambi). Tersedia ratusan koleksi pakaian adat nusantara, jas formal, dan Jasco untuk segala kebutuhan acara Anda.</p>
+                
+                <h2 class="section-title">Kenapa Memilih Sewa Baju Adat Kami?</h2>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">300+</span>
+                        <span class="stat-label">Foto & Video</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">38</span>
+                        <span class="stat-label">Provinsi</span>
+                    </div>
+                </div>
+
+                <div class="hero-btns">
+                    <a href="gallery" class="btn">
+                        <i class="fas fa-images"></i> Jelajahi Galeri
+                    </a>
+                    <a href="kontak" class="btn btn-outline">
+                        <i class="fa-solid fa-phone"></i> Hubungi Kami
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Include Footer -->
+    <div id="footer-container"></div>
+
+    <script>
+        // Load navbar and footer
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('navbar.html?v=1.1')
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('navbar-container').innerHTML = html;
+                })
+                .catch(() => {
+                    document.getElementById('navbar-container').innerHTML = '';
+                });
+
+            fetch('footer.html?v=1.1')
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('footer-container').innerHTML = html;
+                })
+                .catch(() => {
+                    document.getElementById('footer-container').innerHTML = '';
+                });
+
+            // Toggle Mobile Menu (simple version)
+            window.toggleMenu = function () {
+                const nav = document.querySelector('.main-nav');
+                if (nav) nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
+            };
+        });
+
+        // Initialize Lenis Smooth Scroll
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            direction: 'vertical',
+            gestureDirection: 'vertical',
+            smooth: true,
+            mouseMultiplier: 1,
+            smoothTouch: false,
+            touchMultiplier: 2,
+            infinite: false,
+        });
+
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
+
+        // Preloader fallback and logic
+        function hidePreloader() {
+            const preloader = document.getElementById('preloader');
+            if (preloader) {
+                preloader.classList.add('loaded');
+            }
+        }
+
+        window.addEventListener('load', hidePreloader);
+        // Fallback: hide preloader after 5 seconds if load event doesn't fire
+        setTimeout(hidePreloader, 5000);
+
+        // Hero Parallax on Mouse Move
+        document.addEventListener('mousemove', (e) => {
+            const hero = document.querySelector('.hero');
+            if (hero) {
+                const { clientX, clientY } = e;
+                const { innerWidth, innerHeight } = window;
+                const xPos = (clientX / innerWidth - 0.5) * 15;
+                const yPos = (clientY / innerHeight - 0.5) * 15;
+                hero.style.backgroundPosition = `calc(50% + ${xPos}px) calc(50% + ${yPos}px)`;
+            }
+        });
+    </script>
+</body>
+
+</html>

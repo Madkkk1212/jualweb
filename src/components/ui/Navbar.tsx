@@ -1,0 +1,94 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Sun, Moon, Instagram } from "lucide-react";
+import Link from "next/link";
+import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
+import { Button } from "./Button";
+
+export const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const navLinks = [
+    { name: "Beranda", href: "/" },
+    { name: "Portofolio", href: "/portfolio" },
+    { name: "Solusi", href: "/services" },
+    { name: "Harga", href: "/pricing" },
+    { name: "Proses", href: "/process" },
+    { name: "FAQ", href: "/faq" },
+    { name: "Kontak", href: "/contact" },
+  ];
+
+  if (!mounted) return null;
+
+  return (
+    <nav
+      className={cn(
+        "fixed top-3 sm:top-4 left-1/2 z-50 transition-all duration-500 ease-out w-[95%] max-w-7xl",
+        isScrolled 
+          ? "opacity-100 -translate-x-1/2 translate-y-0" 
+          : "opacity-0 -translate-x-1/2 -translate-y-[150%] pointer-events-none"
+      )}
+    >
+      <div
+        className={cn(
+          "px-4 sm:px-6 py-3 rounded-2xl flex items-center justify-between border transition-all duration-300 gap-3 glass border-border/50 shadow-premium"
+        )}
+      >
+        <Link href="/" className="flex items-center gap-2 group min-w-0">
+          <span className="text-base sm:text-xl font-bold tracking-tighter text-foreground whitespace-nowrap overflow-hidden text-ellipsis">
+            <span className="text-accent-blue font-mono">&lt;</span>
+            LumaSpace
+            <span className="text-accent-blue font-mono"> /&gt;</span>
+          </span>
+        </Link>
+
+        <div className="hidden md:flex items-center gap-8">
+          {navLinks.map((link) => (
+            <Link
+              key={link.name}
+              href={link.href}
+              className="text-sm font-medium text-foreground/60 hover:text-accent-blue transition-colors"
+            >
+              {link.name}
+            </Link>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <Link
+            href="https://www.instagram.com/lumaspace.web/"
+            target="_blank"
+            className="hidden md:inline-flex p-2 rounded-xl border border-border/50 hover:bg-foreground/5 transition-colors text-foreground/60 hover:text-accent-blue"
+          >
+            <Instagram className="h-4 w-4" />
+          </Link>
+
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="p-2 rounded-xl border border-border/50 hover:bg-foreground/5 transition-colors text-foreground/60 hover:text-foreground"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+
+          <Link href="https://wa.me/6289514618737" target="_blank" className="hidden sm:block">
+            <Button size="sm" variant="primary">
+              Chat WhatsApp
+            </Button>
+          </Link>
+
+        </div>
+      </div>
+    </nav>
+  );
+};
