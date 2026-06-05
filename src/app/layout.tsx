@@ -165,7 +165,7 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
-          enableSystem
+          forcedTheme="light"
           disableTransitionOnChange
         >
           <div className="flex flex-col min-h-screen relative overflow-hidden">

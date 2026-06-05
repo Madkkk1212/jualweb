@@ -38,7 +38,7 @@ export const projects: Project[] = [
     tag: "F&B - Company Profile",
     category: "F&B",
     desc: "Website restoran premium dengan presentasi menu elegan yang memukau dan fungsionalitas memanjakan tamu.",
-    img: "https://iad.microlink.io/87MZCnknhQ9oEgBY2tepvPL4eFUZGDclvEHL4Av0JV6Y5UCrRBZCAAZ1g_XkLtjtdbmmJHv4dKdGT0jpp2BA7A.png",
+    img: "/img/luma-restaurant.png",
     link: "https://restaurant-luma.vercel.app/",
   },
   {
@@ -46,7 +46,7 @@ export const projects: Project[] = [
     tag: "Property - Platform",
     category: "Property",
     desc: "Platform pencarian kost modern yang premium. Menawarkan navigasi intuitif untuk pengalaman pencarian hunian terbaik.",
-    img: "https://iad.microlink.io/Lij3r7QlASfc7IJ9jXMvMuglhDdyVqjsustl9CNMlTV5DqtYSMJGi6LwA1hgyp2KHlAhPRhYL6_m_k560_K7xw.png",
+    img: "/img/pencarikost-luma.png",
     link: "https://pencarikost-luma.vercel.app/",
   },
   {
@@ -102,7 +102,7 @@ export const projects: Project[] = [
     tag: "Travel - Umrah & Haji",
     category: "Travel",
     desc: "Website layanan travel umrah dan haji terpercaya di Jambi dengan paket eksklusif, pelayanan sesuai sunnah, dan pengalaman ibadah yang tak terlupakan.",
-    img: "https://image.thum.io/get/width/1200/noanimate/https://atunaumrohjambi-luma.vercel.app/",
+    img: "/img/haji.png",
     link: "https://atunaumrohjambi-luma.vercel.app/",
   },
   {

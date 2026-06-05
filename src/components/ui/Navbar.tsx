@@ -1,15 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Sun, Moon, Instagram } from "lucide-react";
+import { Instagram } from "lucide-react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Button } from "./Button";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -73,13 +71,6 @@ export const Navbar = () => {
           >
             <Instagram className="h-4 w-4" />
           </Link>
-
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2 rounded-xl border border-border/50 hover:bg-foreground/5 transition-colors text-foreground/60 hover:text-foreground"
-          >
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
 
           <Link href="https://wa.me/6289514618737" target="_blank" className="hidden sm:block">
             <Button size="sm" variant="primary">
