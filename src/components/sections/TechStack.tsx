@@ -334,7 +334,7 @@ export const TechStack = () => {
                     LUMA@WEB:~$
                   </span>
                   <span
-                    className="text-xs font-black text-foreground/80"
+                    className="text-xs font-black text-slate-800"
                     style={pixelStyle}
                   >
                     run system-check --all
@@ -455,12 +455,12 @@ export const TechStack = () => {
                     </div>
 
                     <h4
-                      className="font-black text-foreground text-sm mb-1"
+                      className="font-black text-slate-900 text-sm mb-1"
                       style={pixelStyle}
                     >
                       {f.title}
                     </h4>
-                    <p className="text-xs text-foreground/55 leading-relaxed font-medium mb-3">
+                    <p className="text-xs text-slate-700 leading-relaxed font-medium mb-3">
                       {f.desc}
                     </p>
 
@@ -488,14 +488,14 @@ export const TechStack = () => {
                     </div>
                     <div className="flex justify-between mt-0.5">
                       <span
-                        className="text-[8px] font-black opacity-30"
+                        className="text-[8px] font-black text-slate-400"
                         style={pixelStyle}
                       >
                         0%
                       </span>
                       <span
-                        className="text-[8px] font-black"
-                        style={{ ...pixelStyle, color: f.color }}
+                        className="text-[8px] font-black text-slate-900"
+                        style={pixelStyle}
                       >
                         {f.val}%
                       </span>
