@@ -65,7 +65,7 @@ export const Navbar = () => {
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link
-            href="https://www.instagram.com/lumaspace.web/"
+            href="https://www.instagram.com/lumaspace.web.id/"
             target="_blank"
             className="hidden md:inline-flex p-2 rounded-xl border border-border/50 hover:bg-foreground/5 transition-colors text-foreground/60 hover:text-accent-blue"
           >

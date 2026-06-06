@@ -6,7 +6,7 @@ import { Button } from "../ui/Button";
 import Link from "next/link";
 import { Instagram, ArrowRight, MessageCircle, ShieldCheck, Zap, Clock } from "lucide-react";
 
-const instagramUrl = "https://www.instagram.com/lumaspace.web/";
+const instagramUrl = "https://www.instagram.com/lumaspace.web.id/";
 const whatsappUrl = "https://wa.me/6289514618737";
 
 export const ContactCTA = () => {
@@ -69,7 +69,7 @@ export const ContactCTA = () => {
           <Link href={instagramUrl} target="_blank" className="w-full sm:w-auto">
             <Button variant="outline" size="lg" className="w-full h-16 px-10 border-border/80 hover:bg-foreground/5">
               <Instagram className="h-5 w-5 mr-2" />
-              IG Portfolio @lumaspace.web
+              IG Portfolio @lumaspace.web.id
             </Button>
           </Link>
         </div>

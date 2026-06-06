@@ -58,8 +58,8 @@ export default function ContactPage() {
     {
       icon: Instagram,
       label: "Instagram",
-      value: "@lumaspace.web",
-      href: "https://www.instagram.com/lumaspace.web/",
+      value: "@lumaspace.web.id",
+      href: "https://www.instagram.com/lumaspace.web.id/",
       color: "text-purple-400",
       bg: "bg-purple-400/10",
     },

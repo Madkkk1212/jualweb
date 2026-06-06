@@ -12,7 +12,7 @@ export const siteConfig = {
   email: "lumaspace@gmail.com",
   phone: "+62 895-1461-8737",
   whatsapp: "https://wa.me/6289514618737",
-  instagram: "https://www.instagram.com/lumaspace.web/",
+  instagram: "https://www.instagram.com/lumaspace.web.id/",
   city: "Jambi",
   region: "Jambi",
   addressCountry: "ID",

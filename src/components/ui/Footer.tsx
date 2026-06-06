@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { Instagram, Mail, MessageCircle } from "lucide-react";
 
-const instagramUrl = "https://www.instagram.com/lumaspace.web/";
+const instagramUrl = "https://www.instagram.com/lumaspace.web.id/";
 const whatsappUrl = "https://wa.me/6289514618737";
 
 
@@ -39,7 +39,7 @@ export const Footer = () => {
                 className="inline-flex items-center gap-2 rounded-xl bg-foreground/5 px-4 py-3 text-foreground/70 hover:bg-accent-blue hover:text-white transition-all duration-300 font-bold"
               >
                 <Instagram className="h-5 w-5" />
-                @lumaspace.web
+                @lumaspace.web.id
               </Link>
               <Link
                 href="mailto:lumaspace@gmail.com"
@@ -72,7 +72,7 @@ export const Footer = () => {
             <h4 className="text-sm font-black text-foreground uppercase tracking-widest">Kontak Kami</h4>
             <ul className="space-y-4">
               <li><Link href={whatsappUrl} target="_blank" className="text-foreground/50 hover:text-accent-green transition-colors font-medium">WhatsApp: 0895-1461-8737</Link></li>
-              <li><Link href={instagramUrl} target="_blank" className="text-foreground/50 hover:text-accent-blue transition-colors font-medium">Instagram: @lumaspace.web</Link></li>
+              <li><Link href={instagramUrl} target="_blank" className="text-foreground/50 hover:text-accent-blue transition-colors font-medium">Instagram: @lumaspace.web.id</Link></li>
               <li><Link href="mailto:lumaspace@gmail.com" className="text-foreground/50 hover:text-accent-blue transition-colors font-medium">Email: lumaspace@gmail.com</Link></li>
               <li className="text-foreground/50 font-medium">Jambi, Indonesia</li>
             </ul>
