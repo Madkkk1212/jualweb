@@ -118,3 +118,41 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-border rounded-full hover:bg-white/20 transition-colors;
 }
+
+/* Workspace Specific Theme & Resets */
+.workspace-theme, .dark .workspace-theme {
+  --background: 248 244 238 !important; /* #F8F4EE */
+  --foreground: 74 62 61 !important;    /* #4A3E3D */
+  --card: 253 251 247 !important;       /* #FDFBF7 */
+  --border: 220 212 198 !important;     /* #DCd4c6 */
+  --border-opacity: 0.8 !important;
+  color: rgb(74 62 61) !important;
+  background-color: rgb(248 244 238) !important;
+}
+
+.workspace-theme input, 
+.workspace-theme textarea, 
+.workspace-theme select, 
+.workspace-theme button {
+  font-family: inherit;
+}
+
+/* Custom scrollbar for workspace */
+.workspace-theme ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.workspace-theme ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.workspace-theme ::-webkit-scrollbar-thumb {
+  background: rgba(122, 111, 109, 0.2);
+  border-radius: 999px;
+}
+
+.workspace-theme ::-webkit-scrollbar-thumb:hover {
+  background: rgba(122, 111, 109, 0.4);
+}
+

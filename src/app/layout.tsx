@@ -8,6 +8,7 @@ import { Footer } from "@/components/ui/Footer";
 import { ContactCTA } from "@/components/sections/ContactCTA";
 import { WhatsAppFloat } from "@/components/ui/WhatsAppFloat";
 import { siteConfig } from "@/lib/seo";
+import { LayoutWrapper } from "@/components/ui/LayoutWrapper";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -196,16 +197,15 @@ export default function RootLayout({
               </svg>
             </div>
 
-            <div className="relative z-10 flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow">
-                {children}
-              </main>
-              <ContactCTA />
-              <Footer />
-              <BottomNav />
-              <WhatsAppFloat />
-            </div>
+            <LayoutWrapper
+              navbar={<Navbar />}
+              contactCTA={<ContactCTA />}
+              footer={<Footer />}
+              bottomNav={<BottomNav />}
+              whatsAppFloat={<WhatsAppFloat />}
+            >
+              {children}
+            </LayoutWrapper>
           </div>
         </ThemeProvider>
       </body>
