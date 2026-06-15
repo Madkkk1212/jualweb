@@ -269,7 +269,7 @@ export default function WhatsAppWorkspace() {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8F4EE] overflow-hidden select-none font-sans relative text-[#4A3E3D]">
+    <div className="flex flex-col lg:flex-row h-screen bg-[#F8F4EE] overflow-hidden select-none font-sans relative text-[#4A3E3D]">
       {/* ─── LOADING SCREEN ─── */}
       <AnimatePresence>
         {isLoading && (
@@ -285,7 +285,7 @@ export default function WhatsAppWorkspace() {
       </AnimatePresence>
 
       {/* ─── SIDEBAR CATEGORIES ─── */}
-      <div className="w-[240px] bg-[#FAF6F0] border-r border-[#DCd4c6] flex flex-col h-full flex-shrink-0 z-10 hidden md:flex">
+      <div className="w-[240px] bg-[#FAF6F0] border-r border-[#DCd4c6] flex-col h-full flex-shrink-0 z-10 hidden lg:flex">
         <div className="p-4 border-b border-[#E6DFD5] flex items-center gap-2">
           <button onClick={() => router.push(`/${prefix}/note`)} className="p-1.5 bg-white rounded-lg border border-[#DCd4c6] text-[#7A6F6D] hover:text-[#4A3E3D] hover:bg-[#F0EAE1] transition-colors">
             <ArrowLeft className="h-4 w-4" />
@@ -336,11 +336,16 @@ export default function WhatsAppWorkspace() {
       </div>
 
       {/* ─── MAIN CONTENT (CONTACTS) ─── */}
-      <div className="flex-1 flex flex-col min-w-0 bg-white border-r border-[#E6DFD5] z-10">
+      <div className="flex-1 flex flex-col min-w-0 bg-white border-b lg:border-b-0 lg:border-r border-[#E6DFD5] z-10">
         <div className="p-4 border-b border-[#E6DFD5] bg-[#FDFBF7] flex flex-col gap-4">
-          <div>
-            <h1 className="text-xl font-bold text-[#3C2F2F]">Pilih Kontak</h1>
-            <p className="text-sm text-[#7A6F6D]">Pilih kontak yang ingin Anda kirimi pesan WhatsApp.</p>
+          <div className="flex items-center gap-3">
+            <button onClick={() => router.push(`/${prefix}/note`)} className="lg:hidden p-2 bg-white rounded-xl border border-[#DCd4c6] text-[#7A6F6D] hover:text-[#4A3E3D] hover:bg-[#F0EAE1] transition-colors">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-[#3C2F2F]">Pilih Kontak</h1>
+              <p className="text-sm text-[#7A6F6D]">Pilih kontak yang ingin Anda kirimi pesan WhatsApp.</p>
+            </div>
           </div>
           
           <div className="flex items-center gap-3">
@@ -354,9 +359,26 @@ export default function WhatsAppWorkspace() {
                 className="w-full pl-9 pr-4 py-2 bg-white border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#A07855]/20 focus:border-[#A07855]"
               />
             </div>
-            <div className="px-3 py-2 bg-[#F0EAE1] rounded-xl border border-[#DCd4c6] text-sm font-semibold text-[#5C4B40]">
+            <div className="px-3 py-2 bg-[#F0EAE1] rounded-xl border border-[#DCd4c6] text-sm font-semibold text-[#5C4B40] whitespace-nowrap">
               {selectedContacts.size} Terpilih
             </div>
+          </div>
+
+          {/* Mobile Category Filter */}
+          <div className="lg:hidden flex overflow-x-auto pb-1 gap-2 no-scrollbar">
+            {contactCategories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
+                  activeCategory === cat
+                    ? "bg-[#5C4B40] text-white border-[#5C4B40]"
+                    : "bg-white text-[#7A6F6D] border-[#DCd4c6] hover:bg-[#EFEAE2]"
+                }`}
+              >
+                {cat} ({cat === "Semua" ? contacts.length : contacts.filter(c => c.category === cat).length})
+              </button>
+            ))}
           </div>
         </div>
 
@@ -423,7 +445,7 @@ export default function WhatsAppWorkspace() {
       </div>
 
       {/* ─── RIGHT PANEL (TEMPLATES & SEND) ─── */}
-      <div className="w-[380px] bg-[#FAF6F0] flex flex-col h-full flex-shrink-0 z-20">
+      <div className="w-full lg:w-[380px] bg-[#FAF6F0] flex flex-col h-[45vh] lg:h-full flex-shrink-0 z-20">
         <div className="p-4 border-b border-[#E6DFD5] bg-white">
           <h2 className="font-bold text-lg text-[#3C2F2F] flex items-center gap-2">
             <Send className="h-5 w-5 text-[#22C55E]" />

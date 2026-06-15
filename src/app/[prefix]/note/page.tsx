@@ -637,10 +637,26 @@ export default function NotesWorkspace() {
                 <span className="text-[10px] text-amber-200/80 font-semibold uppercase tracking-wide mt-1">Total Relasi</span>
               </button>
 
-              {/* Box 4: Create Note */}
+              {/* Box 4: WA Blaster */}
+              <button 
+                onClick={() => router.push(`/${prefix}/whatsapp`)}
+                className="relative group bg-gradient-to-b from-[#2E5B5B] to-[#113131] border-[3px] border-[#398B8B] rounded-lg p-3 shadow-[0_8px_15px_rgba(0,0,0,0.6),inset_0_2px_8px_rgba(0,0,0,0.5)] active:scale-95 transition-transform flex flex-col items-center justify-center min-h-[110px]"
+              >
+                <div className="absolute inset-0 bg-[#4DB2B2] opacity-0 group-active:opacity-20 transition-opacity rounded-sm" />
+                <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
+                <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
+                <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
+                <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
+                
+                <MessageCircle className="h-8 w-8 text-[#FFD700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2" />
+                <span className="font-bold text-lg text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] leading-none mt-1">Kirim WA</span>
+                <span className="text-[10px] text-amber-200/80 font-semibold uppercase tracking-wide mt-1">WA Blaster</span>
+              </button>
+
+              {/* Box 5: Create Note */}
               <button 
                 onClick={() => { handleCreateNote(); setMobileView("notes"); }}
-                className="relative group bg-gradient-to-b from-[#285A22] to-[#12310C] border-[3px] border-[#448B39] rounded-lg p-3 shadow-[0_8px_15px_rgba(0,0,0,0.6),inset_0_2px_8px_rgba(0,0,0,0.5)] active:scale-95 transition-transform flex flex-col items-center justify-center min-h-[110px]"
+                className="col-span-2 relative group bg-gradient-to-b from-[#285A22] to-[#12310C] border-[3px] border-[#448B39] rounded-lg p-3 shadow-[0_8px_15px_rgba(0,0,0,0.6),inset_0_2px_8px_rgba(0,0,0,0.5)] active:scale-95 transition-transform flex flex-row items-center justify-center gap-3 min-h-[60px]"
               >
                 <div className="absolute inset-0 bg-[#59B24D] opacity-0 group-active:opacity-20 transition-opacity rounded-sm" />
                 <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
@@ -648,10 +664,10 @@ export default function NotesWorkspace() {
                 <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
                 <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
                 
-                <div className="h-8 w-8 mb-2 rounded-full bg-gradient-to-b from-[#FDE68A] to-[#D97706] flex items-center justify-center shadow-[0_0_15px_rgba(253,230,138,0.6)]">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-b from-[#FDE68A] to-[#D97706] flex items-center justify-center shadow-[0_0_15px_rgba(253,230,138,0.6)]">
                   <Plus className="h-5 w-5 text-amber-900" />
                 </div>
-                <span className="font-bold text-[13px] text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] leading-tight text-center">Buat<br/>Catatan</span>
+                <span className="font-bold text-[14px] text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] leading-tight">Buat Catatan Baru</span>
               </button>
 
             </div>
