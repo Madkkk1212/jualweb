@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, Users, Plus, Trash2, Edit, Send, 
   CheckCircle, Loader2, MessageCircle, ArrowLeft, 
-  Save, AlertCircle, Clock, CheckSquare, Square
+  Save, AlertCircle, CheckSquare, Square
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -74,7 +74,12 @@ export default function WhatsAppWorkspace() {
 
     const session = localStorage.getItem("luma_session");
     if (!session) {
-      router.replace(`/${prefix}/login`);
+      router.replace(`/workspace/login`);
+      return;
+    }
+    
+    if (prefix !== session) {
+      router.replace(`/${session}/whatsapp`);
       return;
     }
     setUserId(session);
@@ -91,7 +96,7 @@ export default function WhatsAppWorkspace() {
       ]);
 
       if (contactsRes.data) {
-        setContacts(contactsRes.data.map((c: any) => ({
+        setContacts(contactsRes.data.map((c: { id: string; name: string; phone: string; email?: string; category?: string }) => ({
           id: c.id, name: c.name, phone: c.phone,
           email: c.email || "", category: c.category || "Umum",
         })));
@@ -631,7 +636,7 @@ export default function WhatsAppWorkspace() {
                 <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800 flex gap-3">
                   <AlertCircle className="h-5 w-5 shrink-0" />
                   <p>
-                    <strong>Cara Kerja:</strong> Klik tombol "Kirim WA" pada setiap baris. Sistem akan membuka WhatsApp Web/Desktop. Pastikan Anda menekan tombol kirim di WhatsApp, lalu kembali ke layar ini untuk mengirim ke kontak berikutnya.
+                    <strong>Cara Kerja:</strong> Klik tombol &quot;Kirim WA&quot; pada setiap baris. Sistem akan membuka WhatsApp Web/Desktop. Pastikan Anda menekan tombol kirim di WhatsApp, lalu kembali ke layar ini untuk mengirim ke kontak berikutnya.
                   </p>
                 </div>
 

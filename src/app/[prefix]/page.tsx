@@ -12,9 +12,9 @@ export default function PrefixPage() {
     if (typeof window !== "undefined" && prefix) {
       const session = localStorage.getItem("luma_session");
       if (session) {
-        router.replace(`/${prefix}/note`);
+        router.replace(`/${session}/note`);
       } else {
-        router.replace(`/${prefix}/login`);
+        router.replace(`/workspace/login`);
       }
     }
   }, [router, prefix]);

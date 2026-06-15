@@ -95,7 +95,12 @@ export default function LoginPage() {
     if (typeof window !== "undefined") {
       const session = localStorage.getItem("luma_session");
       if (session) {
-        router.replace(`/${prefix}/note`);
+        router.replace(`/${session}/note`);
+        return;
+      }
+      
+      if (prefix !== "workspace") {
+        router.replace(`/workspace/login`);
         return;
       }
 

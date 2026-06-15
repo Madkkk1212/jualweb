@@ -119,7 +119,12 @@ export default function NotesWorkspace() {
 
     const session = localStorage.getItem("luma_session");
     if (!session) {
-      router.replace(`/${prefix}/login`);
+      router.replace(`/workspace/login`);
+      return;
+    }
+
+    if (prefix !== session) {
+      router.replace(`/${session}/note`);
       return;
     }
 
@@ -662,6 +667,7 @@ export default function NotesWorkspace() {
               
               {/* Mascot Image (Bunny) */}
               <div className="w-[120px] h-[120px] relative z-10 drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
                   src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Rabbit.png" 
                   alt="Mascot Bunny"

@@ -218,6 +218,7 @@ export const Hero = () => {
                   <div className="absolute bottom-[-8px] left-0 w-4 h-4 bg-white dark:bg-zinc-800 border-b border-l border-accent-blue/20 rounded-bl-sm transform rotate-[-45deg]"></div>
                 </motion.div>
 
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/img/robotnya.png"
                   alt="Robot Assistant"
