@@ -40,6 +40,7 @@ interface Contact {
   phone: string;
   email: string;
   category: string;
+  ig?: string;
 }
 
 interface UserProfile {
@@ -96,6 +97,7 @@ export default function NotesWorkspace() {
   const [newContactName, setNewContactName] = useState("");
   const [newContactPhone, setNewContactPhone] = useState("");
   const [newContactEmail, setNewContactEmail] = useState("");
+  const [newContactIg, setNewContactIg] = useState("");
   const [newContactCategory, setNewContactCategory] = useState("");
 
   // Custom categories state
@@ -165,6 +167,7 @@ export default function NotesWorkspace() {
         setContacts(contactsRes.data.map((c) => ({
           id: c.id, name: c.name, phone: c.phone,
           email: c.email || "", category: c.category || "Umum",
+          ig: c.ig || "",
         })));
       }
 
@@ -384,17 +387,20 @@ export default function NotesWorkspace() {
       name: newContactName.trim(),
       phone: newContactPhone.trim(),
       email: newContactEmail.trim(),
+      ig: newContactIg.trim(),
       category: newContactCategory || contactCategories[0] || "Umum",
     };
 
     setContacts(prev => [newContact, ...prev]);
     setNewContactName(""); setNewContactPhone(""); setNewContactEmail("");
+    setNewContactIg("");
     setNewContactCategory(""); setContactModalOpen(false);
 
     const { error } = await supabase.from("contacts").insert({
       id: newContact.id, user_id: getUserId(),
       name: newContact.name, phone: newContact.phone,
       email: newContact.email, category: newContact.category,
+      ig: newContact.ig,
     });
     if (error) console.error("Insert contact error:", error);
   };
@@ -473,6 +479,7 @@ export default function NotesWorkspace() {
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.phone.includes(searchQuery) ||
       c.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.ig || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (c.category || "").toLowerCase().includes(searchQuery.toLowerCase());
     const matchCat = contactsCatFilter ? (c.category || "") === contactsCatFilter : true;
     return matchSearch && matchCat;
@@ -1435,6 +1442,22 @@ export default function NotesWorkspace() {
                                 <span>-</span>
                               </div>
                             )}
+                            {contact.ig && contact.ig !== "-" ? (
+                              <a
+                                href={`https://instagram.com/${contact.ig.replace('@', '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 hover:text-[#5C4B40] transition-colors truncate"
+                              >
+                                <Instagram className="h-3.5 w-3.5 text-[#A89F95] flex-shrink-0" />
+                                <span className="truncate">{contact.ig}</span>
+                              </a>
+                            ) : (
+                              <div className="flex items-center gap-2 text-[#C0B8AD] truncate">
+                                <Instagram className="h-3.5 w-3.5 flex-shrink-0" />
+                                <span>-</span>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -1626,6 +1649,19 @@ export default function NotesWorkspace() {
                     placeholder="Contoh: name@example.com"
                     value={newContactEmail}
                     onChange={(e) => setNewContactEmail(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-white border border-[#DCd4c6] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] placeholder-[#C0B8AD] text-[#3C2F2F]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">
+                    Instagram Kontak (Opsional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: @username"
+                    value={newContactIg}
+                    onChange={(e) => setNewContactIg(e.target.value)}
                     className="w-full px-3 py-2 text-sm bg-white border border-[#DCd4c6] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] placeholder-[#C0B8AD] text-[#3C2F2F]"
                   />
                 </div>

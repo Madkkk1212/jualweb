@@ -17,6 +17,7 @@ interface Contact {
   phone: string;
   email: string;
   category: string;
+  ig?: string;
 }
 
 interface Template {
@@ -96,9 +97,10 @@ export default function WhatsAppWorkspace() {
       ]);
 
       if (contactsRes.data) {
-        setContacts(contactsRes.data.map((c: { id: string; name: string; phone: string; email?: string; category?: string }) => ({
+        setContacts(contactsRes.data.map((c: { id: string; name: string; phone: string; email?: string; category?: string; ig?: string }) => ({
           id: c.id, name: c.name, phone: c.phone,
           email: c.email || "", category: c.category || "Umum",
+          ig: c.ig || "",
         })));
       }
       
