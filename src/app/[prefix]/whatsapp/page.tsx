@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, Users, Plus, Trash2, Edit, Send, 
   CheckCircle, Loader2, MessageCircle, ArrowLeft, 
-  Save, AlertCircle, CheckSquare, Square, X
+  Save, AlertCircle, CheckSquare, Square, X, Instagram,
+  ExternalLink, Maximize2
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -79,6 +80,13 @@ export default function WhatsAppWorkspace() {
   const [sentStatus, setSentStatus] = useState<Record<string, boolean>>({});
   const [selectedWebs, setSelectedWebs] = useState<Record<string, string>>({});
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [igTutorialContact, setIgTutorialContact] = useState<Contact | null>(null);
+  const [selectedWebCategories, setSelectedWebCategories] = useState<Record<string, string>>({});
+  const [previewPlatform, setPreviewPlatform] = useState<"wa" | "ig">("wa");
+  const [isWebSettingsModalOpen, setIsWebSettingsModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isEditingContact, setIsEditingContact] = useState(false);
+  const [contactForm, setContactForm] = useState({ id: "", name: "", phone: "", ig: "", category: "Umum" });
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -217,6 +225,39 @@ export default function WhatsAppWorkspace() {
     await supabase.from("whatsapp_templates").delete().eq("id", id);
   };
 
+  const handleEditContact = (c: Contact) => {
+    setContactForm({ id: c.id, name: c.name, phone: c.phone, ig: c.ig || "", category: c.category || "Umum" });
+    setIsEditingContact(true);
+  };
+
+  const handleSaveContact = async () => {
+    if (!contactForm.name || !contactForm.phone) return;
+    
+    setIsLoading(true);
+    const { error } = await supabase.from("contacts")
+      .update({
+        name: contactForm.name,
+        phone: contactForm.phone,
+        ig: contactForm.ig,
+        category: contactForm.category
+      })
+      .eq("id", contactForm.id);
+
+    if (error) {
+      alert("Gagal memperbarui kontak: " + error.message);
+    } else {
+      setContacts(contacts.map(c => c.id === contactForm.id ? {
+        ...c,
+        name: contactForm.name,
+        phone: contactForm.phone,
+        ig: contactForm.ig,
+        category: contactForm.category
+      } : c));
+      setIsEditingContact(false);
+    }
+    setIsLoading(false);
+  };
+
   const insertVariable = (variable: string) => {
     setTemplateForm(prev => {
       let varToInsert = `{${variable}}`;
@@ -249,7 +290,14 @@ export default function WhatsAppWorkspace() {
     
     // Replace {instagram}
     let igText = "-";
-    if (contact.ig && contact.ig.trim() !== "") igText = contact.ig.startsWith("@") ? contact.ig : `@${contact.ig}`;
+    if (contact.ig && contact.ig.trim() !== "") {
+      const igInput = contact.ig.trim();
+      if (igInput.startsWith("http://") || igInput.startsWith("https://")) {
+        igText = igInput; // Use URL directly in text
+      } else {
+        igText = igInput.startsWith("@") ? igInput : `@${igInput}`;
+      }
+    }
     msg = msg.replace(/{instagram}/g, igText);
     
     // Replace {websiteX} dynamically
@@ -277,6 +325,7 @@ export default function WhatsAppWorkspace() {
     setSendQueue(queue);
     setSentStatus({});
     setIsSendingModalOpen(true);
+    setIsSettingsOpen(false);
   };
 
   const handleSendToContact = async (contact: Contact) => {
@@ -309,6 +358,344 @@ export default function WhatsAppWorkspace() {
     if (data) {
       setHistory(prev => [data[0], ...prev]);
     }
+  };
+
+  const handleSendToContactIG = async (contact: Contact) => {
+    const template = getSelectedTemplate();
+    if (!template) return;
+
+    // Compile message text & copy to clipboard
+    const encodedText = generateMessage(contact, template.content);
+    const text = decodeURIComponent(encodedText);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      console.error("Failed to copy automatically", e);
+    }
+
+    setIgTutorialContact(contact);
+  };
+
+  const handleConfirmSendIG = async (contact: Contact) => {
+    // Parse IG Input (URL or Username)
+    let igUrl = "";
+    const igInput = contact.ig?.trim() || "";
+    let cleanUsername = igInput;
+    
+    if (igInput.startsWith("http://") || igInput.startsWith("https://")) {
+      igUrl = igInput;
+      try {
+        const parts = igInput.split('/');
+        const lastPart = parts.filter(Boolean).pop();
+        cleanUsername = lastPart ? lastPart.split('?')[0] : igInput;
+        if (cleanUsername.startsWith('@')) cleanUsername = cleanUsername.substring(1);
+      } catch {
+        cleanUsername = igInput;
+      }
+    } else {
+      if (cleanUsername.startsWith('@')) {
+        cleanUsername = cleanUsername.substring(1);
+      }
+      igUrl = cleanUsername ? `https://www.instagram.com/${cleanUsername}` : `https://www.instagram.com/direct/new/`;
+    }
+    
+    window.open(igUrl, "_blank");
+    
+    // Update local status
+    setSentStatus(prev => ({ ...prev, [contact.id]: true }));
+    
+    const template = getSelectedTemplate();
+    if (template) {
+      // Save history
+      const historyData = {
+        contact_name: contact.name,
+        contact_phone: `IG: ${cleanUsername || "Manual"}`,
+        template_name: `[IG] ${template.name}`,
+        user_id: userId,
+        sent_by: userId
+      };
+      
+      const { data } = await supabase.from("whatsapp_send_history").insert([historyData]).select();
+      if (data) {
+        setHistory(prev => [data[0], ...prev]);
+      }
+    }
+    
+    setIgTutorialContact(null);
+  };
+
+  const renderRightPanel = (isPopup = false) => {
+    const template = getSelectedTemplate();
+    const matches = template ? template.content.match(/{website\d+}/g) || [] : [];
+    const usedWebVars = Array.from(new Set(matches.map(m => m.replace(/[{}]/g, ''))));
+    const configuredCount = usedWebVars.filter(w => selectedWebs[w]).length;
+    const isAllConfigured = configuredCount === usedWebVars.length;
+
+    return (
+      <div className="flex flex-col h-full w-full bg-[#FAF6F0]">
+        {/* Header */}
+        <div className="p-4 border-b border-[#E6DFD5] bg-white flex justify-between items-center shrink-0">
+          <h2 className="font-bold text-lg text-[#3C2F2F] flex items-center gap-2 font-sans">
+            <Send className="h-5 w-5 text-[#22C55E]" />
+            Pengaturan Pesan
+          </h2>
+          {isPopup ? (
+            <button 
+              onClick={() => setIsSettingsOpen(false)}
+              className="p-1.5 hover:bg-[#EFEAE2] rounded-xl text-[#A89F95] hover:text-[#5C4B40] transition-colors"
+              title="Tutup Pengaturan"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          ) : (
+            <button 
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-1.5 hover:bg-[#EFEAE2] rounded-xl text-[#A89F95] hover:text-[#5C4B40] transition-colors"
+              title="Buka Popup"
+            >
+              <Maximize2 className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+
+        {/* Scrollable Body */}
+        <div 
+          className="flex-1 overflow-y-auto p-4 pb-28 scroll-smooth overscroll-contain"
+          style={{ 
+            WebkitOverflowScrolling: "touch", 
+            willChange: "transform" 
+          }}
+        >
+          {/* Template Selection Mode */}
+          <div className="mb-6">
+            <div className="flex justify-between items-end mb-2">
+              <label className="text-sm font-bold text-[#5C4B40] font-sans">Pilih Template</label>
+              <button 
+                onClick={handleCreateTemplate}
+                className="text-xs text-[#A07855] font-semibold flex items-center hover:underline font-sans"
+              >
+                <Plus className="h-3 w-3 mr-0.5" /> Buat Baru
+              </button>
+            </div>
+            
+            <div className="space-y-2">
+              {templates.map(t => (
+                <div 
+                  key={t.id}
+                  onClick={() => setSelectedTemplateId(t.id)}
+                  className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                    selectedTemplateId === t.id 
+                    ? "bg-white border-[#A07855] shadow-[0_0_0_1px_#A07855]" 
+                    : "bg-white/50 border-[#DCd4c6] hover:bg-white"
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="font-bold text-sm text-[#3C2F2F] font-sans">{t.name}</span>
+                    {selectedTemplateId === t.id && (
+                      <div className="flex gap-1">
+                        <button onClick={(e) => { e.stopPropagation(); handleEditTemplate(t); }} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
+                          <Edit className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); handleDeleteTemplate(t.id); }} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wider text-[#A89F95] mb-2 font-sans">{t.category}</div>
+                  <p className="text-xs text-[#7A6F6D] line-clamp-2 leading-relaxed font-sans">
+                    {t.content}
+                  </p>
+                </div>
+              ))}
+              {templates.length === 0 && (
+                <div className="text-center p-4 border border-dashed border-[#DCd4c6] rounded-xl text-sm text-[#A89F95] font-sans">
+                  Belum ada template. Buat template pertama Anda.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Preview Box */}
+          {selectedTemplateId && (
+            <div className="mb-6">
+              <h3 className="text-sm font-bold text-[#5C4B40] mb-2 flex justify-between items-center bg-transparent font-sans">
+                <span>Preview Pesan</span>
+                <button 
+                  onClick={() => setIsPreviewModalOpen(true)}
+                  className="text-[10px] text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded flex items-center gap-1 hover:bg-blue-100 transition-colors border border-blue-200 font-sans"
+                >
+                  <ExternalLink className="h-3 w-3" /> Mockup HP Penuh
+                </button>
+              </h3>
+
+              {/* Platform Switcher */}
+              <div className="flex gap-1 bg-[#FAF6F0] p-1 rounded-xl border border-[#DCd4c6] mb-3">
+                <button
+                  onClick={() => setPreviewPlatform("wa")}
+                  className={`flex-1 py-1 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-all font-sans ${
+                    previewPlatform === "wa"
+                      ? "bg-[#22C55E] text-white shadow-sm"
+                      : "text-[#7A6F6D] hover:bg-white"
+                  }`}
+                >
+                  <MessageCircle className="h-3.5 w-3.5" /> WA
+                </button>
+                <button
+                  onClick={() => setPreviewPlatform("ig")}
+                  className={`flex-1 py-1 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-all font-sans ${
+                    previewPlatform === "ig"
+                      ? "bg-gradient-to-r from-[#fd5949] to-[#d6249f] text-white shadow-sm"
+                      : "text-[#7A6F6D] hover:bg-white"
+                  }`}
+                >
+                  <Instagram className="h-3.5 w-3.5" /> Instagram
+                </button>
+              </div>
+
+              {previewPlatform === "wa" ? (
+                /* WA Speech Bubble */
+                <div 
+                  onClick={() => setIsPreviewModalOpen(true)}
+                  className="bg-[#E2F7CB] p-3 rounded-b-xl rounded-tr-xl border border-[#CDECA9] text-sm text-[#3C2F2F] whitespace-pre-wrap leading-relaxed relative shadow-sm cursor-pointer hover:shadow-md transition-shadow animate-in fade-in zoom-in-95 duration-200"
+                >
+                  {/* Tail for speech bubble */}
+                  <div className="absolute top-0 -left-2 w-0 h-0 border-t-[0px] border-t-transparent border-r-[12px] border-r-[#E2F7CB] border-b-[12px] border-b-transparent"></div>
+                  
+                  {(() => {
+                    const dummyContact = filteredContacts.find(c => selectedContacts.has(c.id)) || { name: "Budi", phone: "08123456789", category: "Customer", ig: "budidoremi" } as Contact;
+                    let msg = template ? template.content : "";
+                    const dateStr = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+                    msg = msg.replace(/{nama}/g, dummyContact.name);
+                    msg = msg.replace(/{nomor}/g, dummyContact.phone);
+                    msg = msg.replace(/{kategori}/g, dummyContact.category || "-");
+                    msg = msg.replace(/{tanggal}/g, dateStr);
+                    
+                    let igText = "-";
+                    if (dummyContact.ig && dummyContact.ig.trim() !== "") igText = dummyContact.ig.startsWith("@") ? dummyContact.ig : `@${dummyContact.ig}`;
+                    msg = msg.replace(/{instagram}/g, igText);
+                    
+                    const webMatches = msg.match(/{website\d+}/g) || [];
+                    const uniqueWebs = Array.from(new Set(webMatches));
+                    uniqueWebs.forEach(w => {
+                      const wKey = w.replace(/[{}]/g, '');
+                      msg = msg.replace(new RegExp(w, 'g'), selectedWebs[wKey] || `[Pilih ${wKey.toUpperCase()}]`);
+                    });
+                    
+                    return msg;
+                  })()}
+                  
+                  <div className="absolute bottom-1.5 right-2 text-[9px] text-[#8696A0] flex items-center gap-1 font-sans">
+                    10:45 <span className="text-[#53bdeb]">✓✓</span>
+                  </div>
+                </div>
+              ) : (
+                /* IG Gradient Bubble */
+                <div 
+                  onClick={() => setIsPreviewModalOpen(true)}
+                  className="flex flex-col items-end cursor-pointer hover:opacity-95 transition-opacity animate-in fade-in zoom-in-95 duration-200"
+                >
+                  <div className="bg-gradient-to-tr from-[#3897f0] via-[#a800e6] to-[#ff217a] p-3 rounded-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-xs text-sm text-white whitespace-pre-wrap leading-relaxed shadow-sm w-full">
+                    {(() => {
+                      const dummyContact = filteredContacts.find(c => selectedContacts.has(c.id)) || { name: "Budi", phone: "08123456789", category: "Customer", ig: "budidoremi" } as Contact;
+                      let msg = template ? template.content : "";
+                      const dateStr = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+                      msg = msg.replace(/{nama}/g, dummyContact.name);
+                      msg = msg.replace(/{nomor}/g, dummyContact.phone);
+                      msg = msg.replace(/{kategori}/g, dummyContact.category || "-");
+                      msg = msg.replace(/{tanggal}/g, dateStr);
+                      
+                      let igText = "-";
+                      if (dummyContact.ig && dummyContact.ig.trim() !== "") igText = dummyContact.ig.startsWith("@") ? dummyContact.ig : `@${dummyContact.ig}`;
+                      msg = msg.replace(/{instagram}/g, igText);
+                      
+                      const webMatches = msg.match(/{website\d+}/g) || [];
+                      const uniqueWebs = Array.from(new Set(webMatches));
+                      uniqueWebs.forEach(w => {
+                        const wKey = w.replace(/[{}]/g, '');
+                        msg = msg.replace(new RegExp(w, 'g'), selectedWebs[wKey] || `[Pilih ${wKey.toUpperCase()}]`);
+                      });
+                      
+                      return msg;
+                    })()}
+                  </div>
+                  <span className="text-[10px] text-[#A89F95] mt-1 mr-1 font-sans">Seen</span>
+                </div>
+              )}
+
+              {selectedContacts.size > 1 && (
+                <p className="text-[10px] text-stone-500 mt-2 italic text-right font-sans">
+                  *Klik untuk melihat mockup HP penuh
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Dynamic website selects config trigger */}
+          {template && usedWebVars.length > 0 && (
+            <div className="mt-4 p-4 bg-white border border-[#E6DFD5] rounded-2xl flex flex-col gap-3 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex justify-between items-center border-b border-[#E6DFD5] pb-2">
+                <h4 className="text-[11px] font-bold text-[#5C4B40] uppercase tracking-wider font-sans">Tautan Template</h4>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full font-sans ${
+                  isAllConfigured ? "bg-green-50 text-green-700 border border-green-200" : "bg-amber-50 text-amber-700 border border-amber-200"
+                }`}>
+                  {configuredCount}/{usedWebVars.length} Terpilih
+                </span>
+              </div>
+
+              {/* Quick list summary */}
+              <div className="space-y-1.5 text-xs text-[#7A6F6D]">
+                {usedWebVars.map(w => {
+                  const isSelected = !!selectedWebs[w];
+                  return (
+                    <div key={w} className="flex justify-between items-center bg-[#FAF6F0] p-2 rounded-xl border border-[#E6DFD5]/60">
+                      <span className="font-bold text-[#5C4B40] uppercase font-sans">{w}</span>
+                      <span>
+                        {isSelected ? (
+                          <CheckCircle className="h-4 w-4 text-green-600 fill-green-50" />
+                        ) : (
+                          <span className="text-amber-600 font-semibold flex items-center gap-1 font-sans">
+                            Belum Diatur <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setIsWebSettingsModalOpen(true)}
+                className="w-full py-2.5 bg-[#FAF6F0] hover:bg-[#EFEAE2] text-[#5C4B40] font-bold text-xs rounded-xl border border-[#DCd4c6] transition-all flex items-center justify-center gap-1.5 font-sans"
+              >
+                <Edit className="h-3.5 w-3.5" />
+                <span>Atur Tautan ({usedWebVars.length})</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Action Button Fixed at Bottom Right Panel */}
+        <div className="p-4 border-t border-[#E6DFD5] bg-white shrink-0">
+          <button
+            onClick={handleStartSending}
+            disabled={
+              selectedContacts.size === 0 || 
+              !selectedTemplateId || 
+              isEditingTemplate || 
+              (() => {
+                if (!template) return false;
+                return usedWebVars.some(w => !selectedWebs[w]);
+              })()
+            }
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white font-bold shadow-lg shadow-green-500/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2 font-sans"
+          >
+            <Send className="h-5 w-5" />
+            <span>Mulai Kirim ({selectedContacts.size} Kontak)</span>
+          </button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -440,8 +827,9 @@ export default function WhatsAppWorkspace() {
             </button>
             <div className="flex-1 grid grid-cols-12 gap-4 text-xs font-bold text-[#A89F95] uppercase tracking-wider">
               <div className="col-span-5">Nama Kontak</div>
-              <div className="col-span-4">Nomor WA</div>
+              <div className="col-span-3">Nomor WA</div>
               <div className="col-span-3">Kategori</div>
+              <div className="col-span-1 text-right">Aksi</div>
             </div>
           </div>
 
@@ -467,11 +855,23 @@ export default function WhatsAppWorkspace() {
                   </div>
                   <div className="flex-1 grid grid-cols-12 gap-4 items-center">
                     <div className="col-span-5 font-semibold text-[#3C2F2F] truncate">{contact.name}</div>
-                    <div className="col-span-4 text-sm text-[#7A6F6D]">{contact.phone}</div>
+                    <div className="col-span-3 text-sm text-[#7A6F6D]">{contact.phone}</div>
                     <div className="col-span-3">
                       <span className="inline-block px-2 py-1 bg-stone-100 text-stone-600 rounded text-[10px] font-bold border border-stone-200 truncate max-w-full">
                         {contact.category}
                       </span>
+                    </div>
+                    <div className="col-span-1 flex justify-end">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditContact(contact);
+                        }}
+                        className="p-1.5 text-amber-600 hover:bg-[#EFEAE2] rounded-lg transition-colors flex items-center justify-center"
+                        title="Edit Kontak"
+                      >
+                        <Edit className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -484,174 +884,60 @@ export default function WhatsAppWorkspace() {
               </div>
             )}
           </div>
+
         </div>
+
+        {/* Floating Action Bar to open Settings */}
+        {selectedContacts.size > 0 && (
+          <div className="lg:hidden p-4 border-t border-[#E6DFD5] bg-white flex items-center justify-between z-20 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] animate-in slide-in-from-bottom-5 duration-300">
+            <div className="flex flex-col">
+              <span className="text-xs text-[#7A6F6D] font-medium font-sans">Kontak Terpilih</span>
+              <span className="text-sm font-bold text-[#3C2F2F] font-sans">{selectedContacts.size} Kontak</span>
+            </div>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="px-6 py-2.5 bg-gradient-to-r from-[#A07855] to-[#8B5A2B] text-white font-bold text-xs rounded-xl shadow-md active:scale-[0.98] transition-all flex items-center gap-1.5 font-sans"
+            >
+              <span>Lanjut ke Pengaturan</span>
+              <Send className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ─── RIGHT PANEL (TEMPLATES & SEND) ─── */}
-      <div className="w-full lg:w-[380px] bg-[#FAF6F0] flex flex-col h-[45vh] lg:h-full flex-shrink-0 z-20">
-        <div className="p-4 border-b border-[#E6DFD5] bg-white">
-          <h2 className="font-bold text-lg text-[#3C2F2F] flex items-center gap-2">
-            <Send className="h-5 w-5 text-[#22C55E]" />
-            Pengaturan Pesan
-          </h2>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4">
-          {/* Template Selection Mode */}
-          <div className="mb-6">
-            <div className="flex justify-between items-end mb-2">
-              <label className="text-sm font-bold text-[#5C4B40]">Pilih Template</label>
-              <button 
-                onClick={handleCreateTemplate}
-                className="text-xs text-[#A07855] font-semibold flex items-center hover:underline"
-              >
-                <Plus className="h-3 w-3 mr-0.5" /> Buat Baru
-              </button>
-            </div>
-            
-            <div className="space-y-2">
-              {templates.map(t => (
-                <div 
-                  key={t.id}
-                  onClick={() => setSelectedTemplateId(t.id)}
-                  className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                    selectedTemplateId === t.id 
-                    ? "bg-white border-[#A07855] shadow-[0_0_0_1px_#A07855]" 
-                    : "bg-white/50 border-[#DCd4c6] hover:bg-white"
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-bold text-sm text-[#3C2F2F]">{t.name}</span>
-                    {selectedTemplateId === t.id && (
-                      <div className="flex gap-1">
-                        <button onClick={(e) => { e.stopPropagation(); handleEditTemplate(t); }} className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
-                          <Edit className="h-3.5 w-3.5" />
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); handleDeleteTemplate(t.id); }} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-[10px] uppercase tracking-wider text-[#A89F95] mb-2">{t.category}</div>
-                  <p className="text-xs text-[#7A6F6D] line-clamp-2 leading-relaxed">
-                    {t.content}
-                  </p>
-                </div>
-              ))}
-              {templates.length === 0 && (
-                <div className="text-center p-4 border border-dashed border-[#DCd4c6] rounded-xl text-sm text-[#A89F95]">
-                  Belum ada template. Buat template pertama Anda.
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Preview Box */}
-          {selectedTemplateId && (
-            <div className="mb-6">
-              <h3 className="text-sm font-bold text-[#5C4B40] mb-2 flex justify-between items-center">
-                <span>Preview Pesan</span>
-                <button 
-                  onClick={() => setIsPreviewModalOpen(true)}
-                  className="text-[10px] text-green-600 font-bold bg-green-50 px-2 py-1 rounded flex items-center gap-1 hover:bg-green-100 transition-colors"
-                >
-                  <MessageCircle className="h-3 w-3" /> Tampilan Penuh WA
-                </button>
-              </h3>
-              <div 
-                onClick={() => setIsPreviewModalOpen(true)}
-                className="bg-[#E2F7CB] p-3 rounded-b-xl rounded-tr-xl border border-[#CDECA9] text-sm text-[#3C2F2F] whitespace-pre-wrap leading-relaxed relative shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-              >
-                {/* Tail for speech bubble */}
-                <div className="absolute top-0 -left-2 w-0 h-0 border-t-[0px] border-t-transparent border-r-[12px] border-r-[#E2F7CB] border-b-[12px] border-b-transparent"></div>
-                
-                {(() => {
-                  const t = getSelectedTemplate();
-                  const dummyContact = filteredContacts.find(c => selectedContacts.has(c.id)) || { name: "Budi", phone: "08123456789", category: "Customer", ig: "budidoremi" } as Contact;
-                  if (!t) return "";
-                  let msg = t.content;
-                  const dateStr = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-                  msg = msg.replace(/{nama}/g, dummyContact.name);
-                  msg = msg.replace(/{nomor}/g, dummyContact.phone);
-                  msg = msg.replace(/{kategori}/g, dummyContact.category || "-");
-                  msg = msg.replace(/{tanggal}/g, dateStr);
-                  
-                  let igText = "-";
-                  if (dummyContact.ig && dummyContact.ig.trim() !== "") igText = dummyContact.ig.startsWith("@") ? dummyContact.ig : `@${dummyContact.ig}`;
-                  msg = msg.replace(/{instagram}/g, igText);
-                  
-                  const webMatches = msg.match(/{website\d+}/g) || [];
-                  const uniqueWebs = Array.from(new Set(webMatches));
-                  uniqueWebs.forEach(w => {
-                    const wKey = w.replace(/[{}]/g, '');
-                    msg = msg.replace(new RegExp(w, 'g'), selectedWebs[wKey] || `[Pilih ${wKey.toUpperCase()}]`);
-                  });
-                  
-                  return msg;
-                })()}
-                
-                <div className="absolute bottom-1.5 right-2 text-[9px] text-[#8696A0] flex items-center gap-1">
-                  10:45 <span className="text-[#53bdeb]">✓✓</span>
-                </div>
-              </div>
-              {selectedContacts.size > 1 && (
-                <p className="text-[10px] text-stone-500 mt-2 italic text-right">
-                  *Klik untuk melihat mockup WA
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Action Button Fixed at Bottom Right Panel */}
-        <div className="p-4 border-t border-[#E6DFD5] bg-white flex flex-col gap-3">
-          {(() => {
-            const template = getSelectedTemplate();
-            if (!template) return null;
-            const matches = template.content.match(/{website\d+}/g) || [];
-            const usedWebVars = Array.from(new Set(matches.map(m => m.replace(/[{}]/g, ''))));
-            
-            return usedWebVars.map(w => (
-              <div key={w} className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D]">
-                  Pilih Tautan untuk {w.toUpperCase()} <span className="text-amber-600">*</span>
-                </label>
-                <select
-                  value={selectedWebs[w] || ""}
-                  onChange={(e) => setSelectedWebs({...selectedWebs, [w]: e.target.value})}
-                  className="w-full px-3 py-2 border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] text-[#3C2F2F] bg-[#FAF6F0]"
-                >
-                  <option value="">-- Pilih {w.toUpperCase()} --</option>
-                  {links.map(l => (
-                    <option key={l.id} value={l.url}>{l.title} ({l.url})</option>
-                  ))}
-                </select>
-              </div>
-            ));
-          })()}
-          
-          <button
-            onClick={handleStartSending}
-            disabled={
-              selectedContacts.size === 0 || 
-              !selectedTemplateId || 
-              isEditingTemplate || 
-              (() => {
-                const template = getSelectedTemplate();
-                if (!template) return false;
-                const matches = template.content.match(/{website\d+}/g) || [];
-                const usedWebVars = Array.from(new Set(matches.map(m => m.replace(/[{}]/g, ''))));
-                return usedWebVars.some(w => !selectedWebs[w]);
-              })()
-            }
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#22C55E] to-[#16A34A] text-white font-bold shadow-lg shadow-green-500/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
-          >
-            <Send className="h-5 w-5" />
-            <span>Mulai Kirim ({selectedContacts.size} Kontak)</span>
-          </button>
-        </div>
+      <div className="hidden lg:flex lg:w-[380px] h-full flex-shrink-0 z-20 border-l border-[#E6DFD5]">
+        {renderRightPanel(false)}
       </div>
+
+      {/* Unified Settings Drawer/Modal Sheet */}
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <div className="fixed inset-0 z-[140] bg-black/60 flex items-end lg:items-center justify-center backdrop-blur-xs p-0 lg:p-4">
+            <motion.div
+              initial={{ 
+                y: typeof window !== "undefined" && window.innerWidth >= 1024 ? 20 : "100%",
+                opacity: typeof window !== "undefined" && window.innerWidth >= 1024 ? 0 : 1,
+                scale: typeof window !== "undefined" && window.innerWidth >= 1024 ? 0.95 : 1
+              }}
+              animate={{ 
+                y: 0,
+                opacity: 1,
+                scale: 1
+              }}
+              exit={{ 
+                y: typeof window !== "undefined" && window.innerWidth >= 1024 ? 20 : "100%",
+                opacity: typeof window !== "undefined" && window.innerWidth >= 1024 ? 0 : 1,
+                scale: typeof window !== "undefined" && window.innerWidth >= 1024 ? 0.95 : 1
+              }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className="w-full lg:max-w-lg h-[85vh] lg:h-[80vh] bg-[#FAF6F0] rounded-t-[2.5rem] lg:rounded-[2rem] overflow-hidden shadow-2xl flex flex-col border-t lg:border border-[#DCd4c6]"
+            >
+              {renderRightPanel(true)}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {isEditingTemplate && (
@@ -757,7 +1043,103 @@ export default function WhatsAppWorkspace() {
         )}
       </AnimatePresence>
 
-      {/* ─── WA PREVIEW MODAL ─── */}
+      <AnimatePresence>
+        {isEditingContact && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsEditingContact(false)}
+              className="absolute inset-0 bg-stone-900/30 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-[#FAF8F5] border border-[#DCd4c6] rounded-2xl w-full max-w-md p-6 relative z-10 shadow-2xl flex flex-col max-h-[90vh]"
+            >
+              <div className="flex justify-between items-center mb-4 pb-2 border-b border-[#E6DFD5] shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
+                    <Edit className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <h3 className="font-serif font-bold text-lg text-[#3C2F2F]">
+                    Edit Kontak
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsEditingContact(false)}
+                  className="p-1 hover:bg-[#EFEAE2] rounded-md transition-colors"
+                >
+                  <X className="h-5 w-5 text-[#A89F95]" />
+                </button>
+              </div>
+              
+              <div className="space-y-4 overflow-y-auto pr-1">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">Nama Kontak</label>
+                  <input 
+                    type="text" 
+                    value={contactForm.name}
+                    onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] placeholder-[#C0B8AD] text-[#3C2F2F] bg-white"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">Nomor WhatsApp</label>
+                  <input 
+                    type="text" 
+                    value={contactForm.phone}
+                    onChange={(e) => setContactForm({...contactForm, phone: e.target.value})}
+                    className="w-full px-3 py-2 border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] placeholder-[#C0B8AD] text-[#3C2F2F] bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">Username Instagram</label>
+                  <input 
+                    type="text" 
+                    value={contactForm.ig}
+                    onChange={(e) => setContactForm({...contactForm, ig: e.target.value})}
+                    className="w-full px-3 py-2 border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] placeholder-[#C0B8AD] text-[#3C2F2F] bg-white"
+                    placeholder="Misal: llaysaaz"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">Kategori</label>
+                  <input 
+                    type="text" 
+                    value={contactForm.category}
+                    onChange={(e) => setContactForm({...contactForm, category: e.target.value})}
+                    className="w-full px-3 py-2 border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] placeholder-[#C0B8AD] text-[#3C2F2F] bg-white"
+                  />
+                </div>
+              </div>
+                
+              <div className="flex gap-2 pt-4 mt-4 border-t border-[#E6DFD5] shrink-0">
+                <button 
+                  onClick={() => setIsEditingContact(false)}
+                  className="flex-1 py-2.5 text-xs font-semibold text-[#5C4B40] bg-[#FAF6F0] border border-[#DCd4c6] rounded-xl hover:bg-[#EFEAE2] transition-colors"
+                >
+                  Batal
+                </button>
+                <button 
+                  onClick={handleSaveContact}
+                  disabled={!contactForm.name || !contactForm.phone}
+                  className="flex-1 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-[#A07855] to-[#8B5A2B] rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Save className="h-4 w-4" /> Simpan Kontak
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── PREVIEW MOCKUP MODAL (WA & IG) ─── */}
       <AnimatePresence>
         {isPreviewModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
@@ -768,85 +1150,210 @@ export default function WhatsAppWorkspace() {
               onClick={() => setIsPreviewModalOpen(false)}
               className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm"
             />
+            
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative z-10 w-full max-w-[360px] h-[700px] max-h-[85vh] bg-[#EFEAE2] rounded-[2rem] border-[8px] border-gray-900 shadow-2xl overflow-hidden flex flex-col"
+              className="relative z-10 w-full max-w-[360px] h-[700px] max-h-[85vh] bg-black rounded-[2rem] border-[8px] border-gray-900 shadow-2xl overflow-hidden flex flex-col select-none"
             >
-              {/* WA Header */}
-              <div className="bg-[#008069] text-white px-4 py-3 flex items-center gap-3 shrink-0 shadow-md z-10">
-                <button onClick={() => setIsPreviewModalOpen(false)} className="shrink-0"><ArrowLeft className="h-5 w-5" /></button>
-                <div className="w-9 h-9 rounded-full bg-stone-300 flex items-center justify-center shrink-0 overflow-hidden">
-                  <Users className="h-5 w-5 text-stone-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-base truncate leading-tight">
-                    {filteredContacts.find(c => selectedContacts.has(c.id))?.name || "Budi (Contoh)"}
-                  </h3>
-                  <p className="text-[11px] text-white/80 truncate">online</p>
-                </div>
+              {/* Floating Platform Switcher inside mockup */}
+              <div className="absolute top-[72px] left-1/2 -translate-x-1/2 z-20 flex bg-[#1e1e1e]/85 backdrop-blur-md p-1 rounded-full border border-stone-800 w-[180px] shadow-lg">
+                <button
+                  onClick={() => setPreviewPlatform("wa")}
+                  className={`flex-1 py-1 rounded-full text-[10px] font-bold flex items-center justify-center gap-1 transition-all ${
+                    previewPlatform === "wa"
+                      ? "bg-[#22C55E] text-white shadow-sm"
+                      : "text-stone-400 hover:text-stone-200"
+                  }`}
+                >
+                  WhatsApp
+                </button>
+                <button
+                  onClick={() => setPreviewPlatform("ig")}
+                  className={`flex-1 py-1 rounded-full text-[10px] font-bold flex items-center justify-center gap-1 transition-all ${
+                    previewPlatform === "ig"
+                      ? "bg-gradient-to-r from-[#fd5949] to-[#d6249f] text-white shadow-sm"
+                      : "text-stone-400 hover:text-stone-200"
+                  }`}
+                >
+                  Instagram
+                </button>
               </div>
 
-              {/* WA Chat Background */}
-              <div 
-                className="flex-1 overflow-y-auto p-4 flex flex-col relative"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10h10v10H10V10zM30 30h10v10H30V30z' fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-                  backgroundColor: "#EFEAE2"
-                }}
-              >
-                <div className="bg-[#D9FDD3] self-end max-w-[85%] rounded-lg rounded-tr-none p-2.5 pb-5 relative shadow-sm text-[14.5px] leading-[1.3] text-[#111B21] mb-2 mt-4">
-                  {/* Tail */}
-                  <div className="absolute top-0 -right-[8px] w-[8px] h-[13px]">
-                    <svg viewBox="0 0 8 13" width="8" height="13" className="text-[#D9FDD3] fill-current">
-                      <path opacity=".13" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path>
-                      <path opacity=".02" d="M5.188 1.25H0v11l6.467-8.625C7.526 2.25 6.958 1.25 5.188 1.25z"></path>
-                      <path d="M5.188 0H0v11.193l6.467-8.625C7.526 1.156 6.958 0 5.188 0z"></path>
-                    </svg>
-                  </div>
-                  
-                  <div className="whitespace-pre-wrap break-words font-sans">
-                    {(() => {
-                      const t = getSelectedTemplate();
-                      const dummyContact = filteredContacts.find(c => selectedContacts.has(c.id)) || { name: "Budi", phone: "08123456789", category: "Customer", ig: "budidoremi" } as Contact;
-                      if (!t) return "";
-                      let msg = t.content;
-                      const dateStr = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-                      msg = msg.replace(/{nama}/g, dummyContact.name);
-                      msg = msg.replace(/{nomor}/g, dummyContact.phone);
-                      msg = msg.replace(/{kategori}/g, dummyContact.category || "-");
-                      msg = msg.replace(/{tanggal}/g, dateStr);
-                      
-                      let igText = "-";
-                      if (dummyContact.ig && dummyContact.ig.trim() !== "") igText = dummyContact.ig.startsWith("@") ? dummyContact.ig : `@${dummyContact.ig}`;
-                      msg = msg.replace(/{instagram}/g, igText);
-                      
-                      const webMatches = msg.match(/{website\d+}/g) || [];
-                      const uniqueWebs = Array.from(new Set(webMatches));
-                      uniqueWebs.forEach(w => {
-                        const wKey = w.replace(/[{}]/g, '');
-                        msg = msg.replace(new RegExp(w, 'g'), selectedWebs[wKey] || `[Pilih ${wKey.toUpperCase()}]`);
-                      });
-                      
-                      return msg;
-                    })()}
+              {previewPlatform === "wa" ? (
+                /* ─── WHATSAPP CHAT PREVIEW ─── */
+                <div className="flex flex-col h-full bg-[#EFEAE2]">
+                  {/* WA Header */}
+                  <div className="bg-[#008069] text-white px-4 py-3 flex items-center gap-3 shrink-0 shadow-md z-10">
+                    <button onClick={() => setIsPreviewModalOpen(false)} className="shrink-0"><ArrowLeft className="h-5 w-5" /></button>
+                    <div className="w-9 h-9 rounded-full bg-stone-300 flex items-center justify-center shrink-0 overflow-hidden">
+                      <Users className="h-5 w-5 text-stone-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-base truncate leading-tight">
+                        {filteredContacts.find(c => selectedContacts.has(c.id))?.name || "Budi (Contoh)"}
+                      </h3>
+                      <p className="text-[11px] text-white/80 truncate">online</p>
+                    </div>
                   </div>
 
-                  <div className="absolute bottom-1 right-1.5 text-[10px] text-[#667781] flex items-center gap-1 font-sans">
-                    10:45 <span className="text-[#53bdeb] ml-0.5">✓✓</span>
+                  {/* WA Chat Background */}
+                  <div 
+                    className="flex-1 overflow-y-auto p-4 flex flex-col relative pt-20"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10h10v10H10V10zM30 30h10v10H30V30z' fill='%23000000' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+                      backgroundColor: "#EFEAE2"
+                    }}
+                  >
+                    <div className="bg-[#D9FDD3] self-end max-w-[85%] rounded-lg rounded-tr-none p-2.5 pb-5 relative shadow-sm text-[14.5px] leading-[1.3] text-[#111B21] mb-2 mt-4">
+                      {/* Tail */}
+                      <div className="absolute top-0 -right-[8px] w-[8px] h-[13px]">
+                        <svg viewBox="0 0 8 13" width="8" height="13" className="text-[#D9FDD3] fill-current">
+                          <path opacity=".13" d="M5.188 1H0v11.193l6.467-8.625C7.526 2.156 6.958 1 5.188 1z"></path>
+                          <path opacity=".02" d="M5.188 1.25H0v11l6.467-8.625C7.526 2.25 6.958 1.25 5.188 1.25z"></path>
+                          <path d="M5.188 0H0v11.193l6.467-8.625C7.526 1.156 6.958 0 5.188 0z"></path>
+                        </svg>
+                      </div>
+                      
+                      <div className="whitespace-pre-wrap break-words font-sans">
+                        {(() => {
+                          const t = getSelectedTemplate();
+                          const dummyContact = filteredContacts.find(c => selectedContacts.has(c.id)) || { name: "Budi", phone: "08123456789", category: "Customer", ig: "budidoremi" } as Contact;
+                          if (!t) return "";
+                          let msg = t.content;
+                          const dateStr = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+                          msg = msg.replace(/{nama}/g, dummyContact.name);
+                          msg = msg.replace(/{nomor}/g, dummyContact.phone);
+                          msg = msg.replace(/{kategori}/g, dummyContact.category || "-");
+                          msg = msg.replace(/{tanggal}/g, dateStr);
+                          
+                          let igText = "-";
+                          if (dummyContact.ig && dummyContact.ig.trim() !== "") igText = dummyContact.ig.startsWith("@") ? dummyContact.ig : `@${dummyContact.ig}`;
+                          msg = msg.replace(/{instagram}/g, igText);
+                          
+                          const webMatches = msg.match(/{website\d+}/g) || [];
+                          const uniqueWebs = Array.from(new Set(webMatches));
+                          uniqueWebs.forEach(w => {
+                            const wKey = w.replace(/[{}]/g, '');
+                            msg = msg.replace(new RegExp(w, 'g'), selectedWebs[wKey] || `[Pilih ${wKey.toUpperCase()}]`);
+                          });
+                          
+                          return msg;
+                        })()}
+                      </div>
+
+                      <div className="absolute bottom-1 right-1.5 text-[10px] text-[#667781] flex items-center gap-1 font-sans">
+                        10:45 <span className="text-[#53bdeb] ml-0.5">✓✓</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* WA Footer */}
+                  <div className="bg-[#F0F2F5] px-2 py-2 flex items-center gap-2 shrink-0">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-stone-500"><Plus className="h-6 w-6" /></div>
+                    <div className="flex-1 bg-white rounded-full px-4 py-2 text-sm text-stone-400">Ketik pesan</div>
+                    <div className="w-8 h-8 rounded-full bg-[#00A884] flex items-center justify-center text-white shadow-sm">
+                      <Send className="h-4 w-4 ml-0.5" />
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                /* ─── INSTAGRAM CHAT PREVIEW (DARK MODE) ─── */
+                <div className="flex flex-col h-full bg-[#000000]">
+                  {/* IG Header */}
+                  <div className="bg-[#121212] border-b border-stone-850 text-white px-4 py-3 flex items-center gap-3 shrink-0 z-10">
+                    <button onClick={() => setIsPreviewModalOpen(false)} className="shrink-0">
+                      <ArrowLeft className="h-5 w-5 text-white" />
+                    </button>
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#fd5949] to-[#d6249f] flex items-center justify-center text-white font-bold overflow-hidden shrink-0 border border-stone-850">
+                      {(() => {
+                        const dummyContact = filteredContacts.find(c => selectedContacts.has(c.id));
+                        return dummyContact?.name?.charAt(0).toUpperCase() || "B";
+                      })()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm truncate leading-tight text-white font-sans">
+                        {(() => {
+                          const dummyContact = filteredContacts.find(c => selectedContacts.has(c.id));
+                          const igInput = dummyContact?.ig?.trim() || "";
+                          if (!igInput) return "instagram_user";
+                          
+                          if (igInput.startsWith("http://") || igInput.startsWith("https://")) {
+                            try {
+                              const parts = igInput.split('/');
+                              const lastPart = parts.filter(Boolean).pop();
+                              let name = lastPart ? lastPart.split('?')[0] : igInput;
+                              if (name.startsWith('@')) name = name.substring(1);
+                              return name;
+                            } catch {
+                              return "instagram_user";
+                            }
+                          }
+                          return igInput.startsWith("@") ? igInput.substring(1) : igInput;
+                        })()}
+                      </h3>
+                      <p className="text-[10px] text-green-500 font-semibold tracking-wide mt-0.5 font-sans">Aktif sekarang</p>
+                    </div>
+                    
+                    {/* Inline icons for audio & video placeholder */}
+                    <div className="flex gap-3 text-stone-300 mr-1">
+                      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M20 12v.5a7.5 7.5 0 0 1-15 0v-.5h1.5v.5a6 6 0 0 0 12 0v-.5H20zM12 2A3.5 3.5 0 0 0 8.5 5.5v5a3.5 3.5 0 0 0 7 0v-5A3.5 3.5 0 0 0 12 2z"/></svg>
+                      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+                    </div>
+                  </div>
 
-              {/* WA Footer */}
-              <div className="bg-[#F0F2F5] px-2 py-2 flex items-center gap-2 shrink-0">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-stone-500"><Plus className="h-6 w-6" /></div>
-                <div className="flex-1 bg-white rounded-full px-4 py-2 text-sm text-stone-400">Ketik pesan</div>
-                <div className="w-8 h-8 rounded-full bg-[#00A884] flex items-center justify-center text-white shadow-sm">
-                  <Send className="h-4 w-4 ml-0.5" />
+                  {/* IG Chat Body */}
+                  <div className="flex-1 overflow-y-auto p-4 flex flex-col relative pt-20 bg-[#000]">
+                    <div className="bg-gradient-to-tr from-[#3897f0] via-[#a800e6] to-[#ff217a] self-end max-w-[85%] rounded-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-xs p-3 text-[14px] leading-[1.35] text-white mb-1 mt-4 shadow-sm">
+                      <div className="whitespace-pre-wrap break-words font-sans">
+                        {(() => {
+                          const t = getSelectedTemplate();
+                          const dummyContact = filteredContacts.find(c => selectedContacts.has(c.id)) || { name: "Budi", phone: "08123456789", category: "Customer", ig: "budidoremi" } as Contact;
+                          if (!t) return "";
+                          let msg = t.content;
+                          const dateStr = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+                          msg = msg.replace(/{nama}/g, dummyContact.name);
+                          msg = msg.replace(/{nomor}/g, dummyContact.phone);
+                          msg = msg.replace(/{kategori}/g, dummyContact.category || "-");
+                          msg = msg.replace(/{tanggal}/g, dateStr);
+                          
+                          let igText = "-";
+                          if (dummyContact.ig && dummyContact.ig.trim() !== "") igText = dummyContact.ig.startsWith("@") ? dummyContact.ig : `@${dummyContact.ig}`;
+                          msg = msg.replace(/{instagram}/g, igText);
+                          
+                          const webMatches = msg.match(/{website\d+}/g) || [];
+                          const uniqueWebs = Array.from(new Set(webMatches));
+                          uniqueWebs.forEach(w => {
+                            const wKey = w.replace(/[{}]/g, '');
+                            msg = msg.replace(new RegExp(w, 'g'), selectedWebs[wKey] || `[Pilih ${wKey.toUpperCase()}]`);
+                          });
+                          
+                          return msg;
+                        })()}
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-stone-500 self-end mr-1 mt-0.5 font-sans">Dilihat</span>
+                  </div>
+
+                  {/* IG Footer */}
+                  <div className="bg-[#121212] border-t border-stone-850 px-3 py-3 flex items-center gap-3 shrink-0">
+                    <div className="flex-1 bg-[#1c1c1e] rounded-full px-4 py-2 border border-stone-800 flex items-center justify-between text-stone-400 text-xs">
+                      <span className="font-sans">Kirim pesan...</span>
+                      <div className="flex gap-2 shrink-0">
+                        {/* Audio record icon */}
+                        <svg className="w-4 h-4 fill-stone-400" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+                        {/* Image gallery icon */}
+                        <svg className="w-4 h-4 fill-stone-400" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                      </div>
+                    </div>
+                    {/* Heart icon */}
+                    <div className="text-[#ff217a] shrink-0">
+                      <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </motion.div>
           </div>
         )}
@@ -886,7 +1393,7 @@ export default function WhatsAppWorkspace() {
                 <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800 flex gap-3">
                   <AlertCircle className="h-5 w-5 shrink-0" />
                   <p>
-                    <strong>Cara Kerja:</strong> Klik tombol &quot;Kirim WA&quot; pada setiap baris. Sistem akan membuka WhatsApp Web/Desktop. Pastikan Anda menekan tombol kirim di WhatsApp, lalu kembali ke layar ini untuk mengirim ke kontak berikutnya.
+                    <strong>Cara Kerja:</strong> Klik <strong>Kirim WA</strong> untuk WhatsApp, atau <strong>IG</strong> untuk Instagram. Jika memilih IG, pesan akan <strong>otomatis tersalin ke clipboard</strong> Anda, jadi Anda cukup menekan tombol Paste di ruang obrolan. Pastikan Anda mengirim pesan, lalu kembali ke layar ini untuk lanjut.
                   </p>
                 </div>
 
@@ -907,15 +1414,28 @@ export default function WhatsAppWorkspace() {
                             </span>
                           )}
                           <button
+                            onClick={() => handleSendToContactIG(contact)}
+                            title="Kirim via Instagram DM"
+                            className={`px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-all ${
+                              isSent 
+                              ? "bg-white border border-[#DCd4c6] text-[#7A6F6D] hover:bg-stone-50" 
+                              : "bg-gradient-to-tr from-[#fd5949] to-[#d6249f] text-white hover:opacity-90 shadow-md shadow-pink-500/20"
+                            }`}
+                          >
+                            <Instagram className="h-4 w-4" />
+                            IG
+                          </button>
+
+                          <button
                             onClick={() => handleSendToContact(contact)}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${
+                            className={`px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-all ${
                               isSent 
                               ? "bg-white border border-[#DCd4c6] text-[#7A6F6D] hover:bg-stone-50" 
                               : "bg-[#22C55E] text-white hover:bg-[#16A34A] shadow-md shadow-green-500/20"
                             }`}
                           >
                             <MessageCircle className="h-4 w-4" />
-                            {isSent ? "Kirim Ulang" : "Kirim WA"}
+                            {isSent ? "Kirim Ulang" : "WA"}
                           </button>
                         </div>
                       </div>
@@ -934,6 +1454,272 @@ export default function WhatsAppWorkspace() {
                 >
                   Selesai
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── INSTAGRAM TUTORIAL MODAL ─── */}
+      <AnimatePresence>
+        {igTutorialContact && (
+          <div className="fixed inset-0 z-[250] bg-black/60 flex items-center justify-center p-4 backdrop-blur-md">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#1e1e24] text-stone-100 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-stone-850"
+            >
+              {/* Top Instagram Gradient Banner */}
+              <div className="h-2 bg-gradient-to-r from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]"></div>
+              
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#fd5949] to-[#d6249f] flex items-center justify-center text-white shadow-lg shadow-pink-500/25">
+                      <Instagram className="h-5.5 w-5.5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg leading-tight text-white font-sans">Langkah Kirim IG DM</h3>
+                      <p className="text-[11px] text-stone-400 font-sans">Untuk {igTutorialContact.name}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setIgTutorialContact(null)}
+                    className="p-1.5 hover:bg-stone-800 rounded-xl text-stone-400 hover:text-stone-200 transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Steps Section */}
+                <div className="space-y-4 mb-6">
+                  
+                  {/* Step 1 */}
+                  <div className="flex gap-4 items-start p-3 rounded-2xl bg-stone-900/40 border border-stone-800/60">
+                    <div className="w-8 h-8 rounded-full bg-green-950 border border-green-800/80 flex items-center justify-center font-bold text-green-400 shrink-0 text-sm">
+                      ✓
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-white font-sans">Teks Disalin Otomatis</div>
+                      <p className="text-xs text-stone-400 mt-0.5 leading-relaxed font-sans">
+                        Pesan template untuk <span className="font-medium text-stone-200">{igTutorialContact.name}</span> sudah berhasil disalin ke clipboard Anda.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Step 2 */}
+                  <div className="flex gap-4 items-start p-3 rounded-2xl bg-stone-900/40 border border-stone-800/60">
+                    <div className="w-8 h-8 rounded-full bg-blue-950 border border-blue-800/80 flex items-center justify-center font-bold text-blue-400 shrink-0 text-sm font-mono">
+                      2
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-white font-sans">Buka DM / Profil IG</div>
+                      <p className="text-xs text-stone-400 mt-0.5 leading-relaxed font-sans">
+                        Klik tombol di bawah untuk membuka halaman Instagram target. {igTutorialContact.ig ? (
+                          <span>
+                            Profil target:{" "}
+                            <strong className="text-[#ee2a7b]">
+                              {igTutorialContact.ig.startsWith("http") 
+                                ? (() => {
+                                    try {
+                                      const parts = igTutorialContact.ig.split('/');
+                                      const lastPart = parts.filter(Boolean).pop();
+                                      return lastPart ? `@${lastPart.split('?')[0]}` : igTutorialContact.ig;
+                                    } catch {
+                                      return igTutorialContact.ig;
+                                    }
+                                  })()
+                                : (igTutorialContact.ig.startsWith("@") ? igTutorialContact.ig : `@${igTutorialContact.ig}`)
+                              }
+                            </strong>.
+                          </span>
+                        ) : (
+                          <span>Cari akun target secara manual.</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Step 3 */}
+                  <div className="flex gap-4 items-start p-3 rounded-2xl bg-stone-900/40 border border-stone-800/60">
+                    <div className="w-8 h-8 rounded-full bg-amber-950 border border-amber-800/80 flex items-center justify-center font-bold text-amber-400 shrink-0 text-sm font-mono">
+                      3
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-white font-sans">Tempel & Kirim</div>
+                      <p className="text-xs text-stone-400 mt-0.5 leading-relaxed font-sans">
+                        Klik tombol <strong className="text-stone-200">Message / Kirim Pesan</strong> di Instagram, lalu tekan:
+                        <span className="block mt-1 px-2 py-1 bg-stone-950 rounded font-mono text-[10px] text-amber-400 w-max">
+                          Desktop: Ctrl + V  |  HP: Tekan lama & Tempel
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Confirm Action Button */}
+                <div className="flex gap-2.5">
+                  <button
+                    onClick={() => setIgTutorialContact(null)}
+                    className="flex-1 py-3 text-xs font-bold text-stone-400 bg-stone-900 border border-stone-800 hover:bg-stone-800 rounded-xl transition-colors font-sans"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={() => handleConfirmSendIG(igTutorialContact)}
+                    className="flex-[2] py-3 rounded-xl bg-gradient-to-r from-[#fd5949] to-[#d6249f] text-white font-bold text-xs shadow-lg shadow-pink-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 font-sans"
+                  >
+                    <span>Buka Instagram & Kirim</span>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── WEB SETTINGS POPUP MODAL ─── */}
+      <AnimatePresence>
+        {isWebSettingsModalOpen && (
+          <div className="fixed inset-0 z-[250] bg-black/60 flex items-center justify-center p-4 backdrop-blur-xs">
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#FAF8F5] text-[#3C2F2F] rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-[#DCd4c6]"
+            >
+              {/* Top Accent Gradient Banner */}
+              <div className="h-2 bg-gradient-to-r from-[#A07855] to-[#8B5A2B]"></div>
+              
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-5 border-b border-[#E6DFD5] pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-[#8B5A2B]">
+                      <Edit className="h-4.5 w-4.5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-base leading-tight text-[#3C2F2F] font-serif">Pengaturan Tautan</h3>
+                      <p className="text-[10px] text-[#7A6F6D] font-sans">Konfigurasi variabel tautan template</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setIsWebSettingsModalOpen(false)}
+                    className="p-1.5 hover:bg-[#EFEAE2] rounded-xl text-[#A89F95] hover:text-[#5C4B40] transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Body dropdowns list (scrollable if many) */}
+                <div 
+                  className="space-y-4 max-h-[50vh] overflow-y-auto pr-1 scroll-smooth overscroll-contain"
+                  style={{ 
+                    WebkitOverflowScrolling: "touch", 
+                    willChange: "transform" 
+                  }}
+                >
+                  {(() => {
+                    const template = getSelectedTemplate();
+                    if (!template) return null;
+                    const matches = template.content.match(/{website\d+}/g) || [];
+                    const usedWebVars = Array.from(new Set(matches.map(m => m.replace(/[{}]/g, ''))));
+                    
+                    const linkCategories = Array.from(new Set(links.map(l => l.category).filter(Boolean)));
+
+                    // Performance Optimization: Pre-group links and find selected links once
+                    const allSelectedWebs = Object.values(selectedWebs).filter(Boolean);
+                    const allGroupedLinks = links.reduce<Record<string, StoredLink[]>>((acc, link) => {
+                      const cat = link.category || "Umum";
+                      if (!acc[cat]) acc[cat] = [];
+                      acc[cat].push(link);
+                      return acc;
+                    }, {});
+
+                    return usedWebVars.map(w => {
+                      const filterCategory = selectedWebCategories[w] || "";
+                      const groupedLinks = filterCategory 
+                        ? { [filterCategory]: allGroupedLinks[filterCategory] || [] }
+                        : allGroupedLinks;
+
+                      return (
+                        <div key={w} className="p-3.5 bg-white border border-[#E6DFD5] rounded-2xl flex flex-col gap-2 shadow-xs">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-[#5C4B40] font-sans">
+                            Pilih Tautan untuk <span className="text-amber-700">{w.toUpperCase()}</span> <span className="text-amber-600">*</span>
+                          </label>
+                          
+                          <div className="flex flex-col gap-2">
+                            {/* Category Filter */}
+                            {linkCategories.length > 0 && (
+                              <select
+                                value={filterCategory}
+                                onChange={(e) => {
+                                  const newCat = e.target.value;
+                                  setSelectedWebCategories({...selectedWebCategories, [w]: newCat});
+                                  const currentVal = selectedWebs[w] || "";
+                                  if (currentVal) {
+                                    const isStillValid = links.some(l => l.url === currentVal && (!newCat || l.category === newCat));
+                                    if (!isStillValid) {
+                                      setSelectedWebs(prev => ({...prev, [w]: ""}));
+                                    }
+                                  }
+                                }}
+                                className="w-full px-3 py-2 border border-[#DCd4c6] rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] text-[#5C4B40] bg-[#FAF8F5] font-semibold"
+                              >
+                                <option value="">Semua Kategori Website</option>
+                                {linkCategories.map(cat => (
+                                  <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                              </select>
+                            )}
+
+                            {/* Main Website dropdown */}
+                            <select
+                              value={selectedWebs[w] || ""}
+                              onChange={(e) => setSelectedWebs({...selectedWebs, [w]: e.target.value})}
+                              className="w-full px-3 py-2 border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] text-[#3C2F2F] bg-white font-sans"
+                            >
+                              <option value="">-- Pilih {w.toUpperCase()} --</option>
+                              {Object.entries(groupedLinks).map(([category, catLinks]) => (
+                                <optgroup key={category} label={category} className="font-semibold text-stone-500 bg-white font-sans">
+                                  {catLinks.map(l => {
+                                    const isAlreadyUsed = allSelectedWebs.includes(l.url) && selectedWebs[w] !== l.url;
+                                    return (
+                                      <option 
+                                        key={l.id} 
+                                        value={l.url} 
+                                        disabled={isAlreadyUsed}
+                                        className={isAlreadyUsed ? "text-stone-300 font-sans" : "font-normal text-stone-800 font-sans"}
+                                      >
+                                        {l.title} ({l.url}){isAlreadyUsed ? " — [Sudah Digunakan]" : ""}
+                                      </option>
+                                    );
+                                  })}
+                                </optgroup>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+
+                {/* Footer Save Button */}
+                <div className="mt-5 pt-3 border-t border-[#E6DFD5]">
+                  <button
+                    onClick={() => setIsWebSettingsModalOpen(false)}
+                    className="w-full py-3 bg-gradient-to-r from-[#A07855] to-[#8B5A2B] text-white font-bold text-xs rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <span>Simpan Pengaturan</span>
+                  </button>
+                </div>
+
               </div>
             </motion.div>
           </div>

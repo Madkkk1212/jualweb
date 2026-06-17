@@ -1248,7 +1248,20 @@ export default function NotesWorkspace() {
                             {contact.phone}
                           </p>
                           {contact.ig && (
-                            <p className="text-[10px] text-purple-500 truncate">@{contact.ig.replace("@", "")}</p>
+                            <p className="text-[10px] text-purple-500 truncate">
+                              {contact.ig.startsWith("http")
+                                ? (() => {
+                                    try {
+                                      const parts = contact.ig.split('/');
+                                      const lastPart = parts.filter(Boolean).pop();
+                                      return `@${lastPart ? lastPart.split('?')[0] : contact.ig}`;
+                                    } catch {
+                                      return contact.ig;
+                                    }
+                                  })()
+                                : (contact.ig.startsWith("@") ? contact.ig : `@${contact.ig}`)
+                              }
+                            </p>
                           )}
                           {contact.category && (
                             <span className={`inline-flex items-center gap-0.5 mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold border ${getContactCategoryColor(contact.category)}`}>
@@ -1561,6 +1574,13 @@ export default function NotesWorkspace() {
                                 </span>
                               )}
                               <button
+                                onClick={() => handleOpenEditContact(contact)}
+                                className="p-1 hover:bg-amber-50 text-[#A89F95] hover:text-amber-600 rounded transition-colors"
+                                title="Edit Kontak"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                              </button>
+                              <button
                                 onClick={() => handleDeleteContact(contact.id)}
                                 className="p-1 hover:bg-red-50 text-[#A89F95] hover:text-red-600 rounded transition-colors"
                                 title="Hapus Kontak"
@@ -1597,13 +1617,30 @@ export default function NotesWorkspace() {
                             )}
                             {contact.ig && contact.ig !== "-" ? (
                               <a
-                                href={`https://instagram.com/${contact.ig.replace('@', '')}`}
+                                href={
+                                  contact.ig.startsWith("http://") || contact.ig.startsWith("https://")
+                                    ? contact.ig
+                                    : `https://instagram.com/${contact.ig.replace('@', '')}`
+                                }
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-2 hover:text-[#5C4B40] transition-colors truncate"
                               >
                                 <Instagram className="h-3.5 w-3.5 text-[#A89F95] flex-shrink-0" />
-                                <span className="truncate">{contact.ig}</span>
+                                <span className="truncate">
+                                  {contact.ig.startsWith("http")
+                                    ? (() => {
+                                        try {
+                                          const parts = contact.ig.split('/');
+                                          const lastPart = parts.filter(Boolean).pop();
+                                          return `@${lastPart ? lastPart.split('?')[0] : contact.ig}`;
+                                        } catch {
+                                          return contact.ig;
+                                        }
+                                      })()
+                                    : (contact.ig.startsWith("@") ? contact.ig : `@${contact.ig}`)
+                                  }
+                                </span>
                               </a>
                             ) : (
                               <div className="flex items-center gap-2 text-[#C0B8AD] truncate">
