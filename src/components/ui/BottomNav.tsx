@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Home, Briefcase, Tag, Layers, MessageCircle } from "lucide-react";
+import { Home, Briefcase, Tag, Layers, Instagram } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -11,11 +11,11 @@ export const BottomNav = () => {
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Beranda", href: "/", icon: Home },
-    { name: "Layanan", href: "/services", icon: Layers },
-    { name: "Harga", href: "/pricing", icon: Tag },
-    { name: "Portofolio", href: "/portfolio", icon: Briefcase },
-    { name: "Kontak", href: "/contact", icon: MessageCircle },
+    { name: "Beranda", href: "/", icon: Home, external: false },
+    { name: "Layanan", href: "/services", icon: Layers, external: false },
+    { name: "Harga", href: "/pricing", icon: Tag, external: false },
+    { name: "Portofolio", href: "/portfolio", icon: Briefcase, external: false },
+    { name: "Instagram", href: "https://www.instagram.com/lumaspace.web.id/", icon: Instagram, external: true },
   ];
 
   return (
@@ -26,26 +26,33 @@ export const BottomNav = () => {
         className="glass border border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.3)] rounded-2xl p-2 flex items-center justify-around pointer-events-auto"
       >
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = !item.external && pathname === item.href;
+          const isInstagram = item.name === "Instagram";
           return (
             <Link
               key={item.name}
               href={item.href}
+              target={item.external ? "_blank" : undefined}
+              rel={item.external ? "noreferrer" : undefined}
               className="relative flex flex-col items-center justify-center py-2 px-1 transition-all flex-1"
             >
               <div className={cn(
                 "p-2 rounded-xl transition-all duration-300",
-                isActive ? "text-accent-blue" : "text-foreground/40"
+                isInstagram
+                  ? "text-purple-400"
+                  : isActive ? "text-accent-blue" : "text-foreground/40"
               )}>
                 <item.icon className={cn(
                   "h-6 w-6 transition-transform duration-300",
-                  isActive ? "scale-110" : "scale-100"
+                  isActive || isInstagram ? "scale-110" : "scale-100"
                 )} />
               </div>
               
               <span className={cn(
                 "text-[10px] font-bold uppercase tracking-widest transition-all duration-300",
-                isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
+                isInstagram
+                  ? "opacity-100 translate-y-0 text-purple-400"
+                  : isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
               )}>
                 {item.name}
               </span>

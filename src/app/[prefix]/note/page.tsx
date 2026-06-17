@@ -93,12 +93,35 @@ export default function NotesWorkspace() {
   const [newLinkUrl, setNewLinkUrl] = useState("");
   const [newLinkCategory, setNewLinkCategory] = useState("");
 
+  // Edit link states
+  const [editLinkModalOpen, setEditLinkModalOpen] = useState(false);
+  const [editingLink, setEditingLink] = useState<StoredLink | null>(null);
+  const [editLinkTitle, setEditLinkTitle] = useState("");
+  const [editLinkUrl, setEditLinkUrl] = useState("");
+  const [editLinkCategory, setEditLinkCategory] = useState("");
+
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [newContactName, setNewContactName] = useState("");
   const [newContactPhone, setNewContactPhone] = useState("");
   const [newContactEmail, setNewContactEmail] = useState("");
   const [newContactIg, setNewContactIg] = useState("");
   const [newContactCategory, setNewContactCategory] = useState("");
+
+  // Edit contact states
+  const [editContactModalOpen, setEditContactModalOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [editContactName, setEditContactName] = useState("");
+  const [editContactPhone, setEditContactPhone] = useState("");
+  const [editContactEmail, setEditContactEmail] = useState("");
+  const [editContactIg, setEditContactIg] = useState("");
+  const [editContactCategory, setEditContactCategory] = useState("");
+
+  // Confirm dialog states
+  type ConfirmType = "delete-contact" | "delete-link" | "delete-note" | "add-contact" | "edit-contact" | "edit-link" | null;
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmType, setConfirmType] = useState<ConfirmType>(null);
+  const [confirmTargetId, setConfirmTargetId] = useState<string | null>(null);
+  const [pendingContactData, setPendingContactData] = useState<Omit<Contact, "id"> | null>(null);
 
   // Custom categories state
   const [linkCategories, setLinkCategories] = useState<string[]>(DEFAULT_LINK_CATEGORIES);
@@ -339,12 +362,21 @@ export default function NotesWorkspace() {
     void noteToSave;
   };
 
-  const handleDeleteNote = async (id: string) => {
-    setNotes(prev => prev.filter(note => note.id !== id));
-    if (selectedNoteId === id) {
-      setSelectedNoteId(notes.filter(n => n.id !== id)[0]?.id || null);
+  const handleDeleteNote = (id: string) => {
+    setConfirmTargetId(id);
+    setConfirmType("delete-note");
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDeleteNote = async () => {
+    if (!confirmTargetId) return;
+    setNotes(prev => prev.filter(note => note.id !== confirmTargetId));
+    if (selectedNoteId === confirmTargetId) {
+      setSelectedNoteId(notes.filter(n => n.id !== confirmTargetId)[0]?.id || null);
     }
-    await supabase.from("notes").delete().eq("id", id).eq("user_id", getUserId());
+    setConfirmOpen(false);
+    await supabase.from("notes").delete().eq("id", confirmTargetId).eq("user_id", getUserId());
+    setConfirmTargetId(null);
   };
 
   // Link CRUD
@@ -372,9 +404,53 @@ export default function NotesWorkspace() {
     if (error) console.error("Insert link error:", error);
   };
 
-  const handleDeleteLink = async (id: string) => {
-    setLinks(prev => prev.filter(link => link.id !== id));
-    await supabase.from("links").delete().eq("id", id).eq("user_id", getUserId());
+  const handleDeleteLink = (id: string) => {
+    setConfirmTargetId(id);
+    setConfirmType("delete-link");
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDeleteLink = async () => {
+    if (!confirmTargetId) return;
+    setLinks(prev => prev.filter(link => link.id !== confirmTargetId));
+    setConfirmOpen(false);
+    await supabase.from("links").delete().eq("id", confirmTargetId).eq("user_id", getUserId());
+    setConfirmTargetId(null);
+  };
+
+  const handleOpenEditLink = (link: StoredLink) => {
+    setEditingLink(link);
+    setEditLinkTitle(link.title);
+    setEditLinkUrl(link.url);
+    setEditLinkCategory(link.category);
+    setEditLinkModalOpen(true);
+  };
+
+  const handleEditLinkSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editLinkTitle.trim() || !editLinkUrl.trim()) return;
+    setEditLinkModalOpen(false);
+    setConfirmType("edit-link");
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmEditLink = async () => {
+    if (!editingLink) return;
+    let formattedUrl = editLinkUrl.trim();
+    if (!/^https?:\/\//i.test(formattedUrl)) formattedUrl = "https://" + formattedUrl;
+    const updated: StoredLink = {
+      ...editingLink,
+      title: editLinkTitle.trim(),
+      url: formattedUrl,
+      category: editLinkCategory,
+    };
+    setLinks(prev => prev.map(l => l.id === updated.id ? updated : l));
+    setConfirmOpen(false);
+    setEditingLink(null);
+    const { error } = await supabase.from("links").update({
+      title: updated.title, url: updated.url, category: updated.category,
+    }).eq("id", updated.id).eq("user_id", getUserId());
+    if (error) console.error("Update link error:", error);
   };
 
   // Contact CRUD
@@ -382,20 +458,28 @@ export default function NotesWorkspace() {
     e.preventDefault();
     if (!newContactName.trim() || !newContactPhone.trim()) return;
 
-    const newContact: Contact = {
-      id: Date.now().toString(),
+    const data = {
       name: newContactName.trim(),
       phone: newContactPhone.trim(),
       email: newContactEmail.trim(),
       ig: newContactIg.trim(),
       category: newContactCategory || contactCategories[0] || "Umum",
     };
+    // Show confirm dialog
+    setPendingContactData(data);
+    setContactModalOpen(false);
+    setConfirmType("add-contact");
+    setConfirmOpen(true);
+  };
 
+  const handleConfirmAddContact = async () => {
+    if (!pendingContactData) return;
+    const newContact: Contact = { id: Date.now().toString(), ...pendingContactData };
     setContacts(prev => [newContact, ...prev]);
     setNewContactName(""); setNewContactPhone(""); setNewContactEmail("");
-    setNewContactIg("");
-    setNewContactCategory(""); setContactModalOpen(false);
-
+    setNewContactIg(""); setNewContactCategory("");
+    setPendingContactData(null);
+    setConfirmOpen(false);
     const { error } = await supabase.from("contacts").insert({
       id: newContact.id, user_id: getUserId(),
       name: newContact.name, phone: newContact.phone,
@@ -405,9 +489,56 @@ export default function NotesWorkspace() {
     if (error) console.error("Insert contact error:", error);
   };
 
-  const handleDeleteContact = async (id: string) => {
-    setContacts(prev => prev.filter(c => c.id !== id));
-    await supabase.from("contacts").delete().eq("id", id).eq("user_id", getUserId());
+  const handleOpenEditContact = (contact: Contact) => {
+    setEditingContact(contact);
+    setEditContactName(contact.name);
+    setEditContactPhone(contact.phone);
+    setEditContactEmail(contact.email || "");
+    setEditContactIg(contact.ig || "");
+    setEditContactCategory(contact.category || contactCategories[0] || "Umum");
+    setEditContactModalOpen(true);
+  };
+
+  const handleEditContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editContactName.trim() || !editContactPhone.trim()) return;
+    setEditContactModalOpen(false);
+    setConfirmType("edit-contact");
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmEditContact = async () => {
+    if (!editingContact) return;
+    const updated: Contact = {
+      ...editingContact,
+      name: editContactName.trim(),
+      phone: editContactPhone.trim(),
+      email: editContactEmail.trim(),
+      ig: editContactIg.trim(),
+      category: editContactCategory,
+    };
+    setContacts(prev => prev.map(c => c.id === updated.id ? updated : c));
+    setConfirmOpen(false);
+    setEditingContact(null);
+    const { error } = await supabase.from("contacts").update({
+      name: updated.name, phone: updated.phone,
+      email: updated.email, ig: updated.ig, category: updated.category,
+    }).eq("id", updated.id).eq("user_id", getUserId());
+    if (error) console.error("Update contact error:", error);
+  };
+
+  const handleDeleteContact = (id: string) => {
+    setConfirmTargetId(id);
+    setConfirmType("delete-contact");
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDeleteContact = async () => {
+    if (!confirmTargetId) return;
+    setContacts(prev => prev.filter(c => c.id !== confirmTargetId));
+    setConfirmOpen(false);
+    await supabase.from("contacts").delete().eq("id", confirmTargetId).eq("user_id", getUserId());
+    setConfirmTargetId(null);
   };
 
   // Category management via Supabase
@@ -1018,18 +1149,27 @@ export default function NotesWorkspace() {
                             <span className="text-[9px] text-[#A07855] font-medium">{link.category}</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                           <a
                             href={link.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1 text-[#A89F95] hover:text-[#5C4B40] rounded transition-colors"
+                            className="p-1.5 text-[#A89F95] hover:text-[#5C4B40] hover:bg-[#EFEAE2] rounded-lg transition-colors"
+                            title="Buka Link"
                           >
                             <ExternalLink className="h-3 w-3" />
                           </a>
                           <button
+                            onClick={() => handleOpenEditLink(link)}
+                            className="p-1.5 text-[#A89F95] hover:text-[#A07855] hover:bg-[#F0EAE1] rounded-lg transition-colors"
+                            title="Edit Link"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                          <button
                             onClick={() => handleDeleteLink(link.id)}
-                            className="p-1 text-[#A89F95] hover:text-red-600 rounded transition-colors"
+                            className="p-1.5 text-[#A89F95] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Hapus Link"
                           >
                             <Trash2 className="h-3 w-3" />
                           </button>
@@ -1107,18 +1247,31 @@ export default function NotesWorkspace() {
                           <p className="text-[10px] text-[#7A6F6D] truncate">
                             {contact.phone}
                           </p>
+                          {contact.ig && (
+                            <p className="text-[10px] text-purple-500 truncate">@{contact.ig.replace("@", "")}</p>
+                          )}
                           {contact.category && (
                             <span className={`inline-flex items-center gap-0.5 mt-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold border ${getContactCategoryColor(contact.category)}`}>
                               <Tag className="h-2 w-2" />{contact.category}
                             </span>
                           )}
                         </div>
-                        <button
-                          onClick={() => handleDeleteContact(contact.id)}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-[#A89F95] hover:text-red-600 rounded transition-opacity flex-shrink-0"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
+                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                          <button
+                            onClick={() => handleOpenEditContact(contact)}
+                            className="p-1.5 text-[#A89F95] hover:text-[#A07855] hover:bg-[#F0EAE1] rounded-lg transition-colors"
+                            title="Edit Kontak"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteContact(contact.id)}
+                            className="p-1.5 text-[#A89F95] hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Hapus Kontak"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
                       </div>
                     ))
                   )}
@@ -1582,6 +1735,99 @@ export default function NotesWorkspace() {
         )}
       </AnimatePresence>
 
+      {/* ─── EDIT LINK MODAL ─── */}
+      <AnimatePresence>
+        {editLinkModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setEditLinkModalOpen(false)}
+              className="absolute inset-0 bg-stone-900/30 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-[#FAF8F5] border border-[#DCd4c6] rounded-2xl w-full max-w-md p-6 relative z-10 shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-4 pb-2 border-b border-[#E6DFD5]">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </div>
+                  <h3 className="font-serif font-bold text-base text-[#3C2F2F]">Edit Link</h3>
+                </div>
+                <button onClick={() => setEditLinkModalOpen(false)} className="p-1 hover:bg-[#EFEAE2] rounded-md transition-colors">
+                  <X className="h-4 w-4 text-[#A89F95]" />
+                </button>
+              </div>
+
+              <form onSubmit={handleEditLinkSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">
+                    Nama Tautan
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editLinkTitle}
+                    onChange={(e) => setEditLinkTitle(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-white border border-[#DCd4c6] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] text-[#3C2F2F]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">
+                    URL Tautan
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editLinkUrl}
+                    onChange={(e) => setEditLinkUrl(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-white border border-[#DCd4c6] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] text-[#3C2F2F]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">
+                    Kategori Platform
+                  </label>
+                  <select
+                    value={editLinkCategory}
+                    onChange={(e) => setEditLinkCategory(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-white border border-[#DCd4c6] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] text-[#3C2F2F]"
+                  >
+                    {linkCategories.map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex gap-2 justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditLinkModalOpen(false)}
+                    className="py-2 px-4 bg-[#FAF6F0] hover:bg-[#EFEAE2] border border-[#DCd4c6] text-xs font-semibold rounded-xl text-[#5C4B40] transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="py-2 px-4 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Simpan Perubahan
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* ─── ADD CONTACT MODAL ─── */}
       <AnimatePresence>
         {contactModalOpen && (
@@ -1697,6 +1943,201 @@ export default function NotesWorkspace() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── EDIT CONTACT MODAL ─── */}
+      <AnimatePresence>
+        {editContactModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setEditContactModalOpen(false)}
+              className="absolute inset-0 bg-stone-900/30 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-[#FAF8F5] border border-[#DCd4c6] rounded-2xl w-full max-w-md p-6 relative z-10 shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-4 pb-2 border-b border-[#E6DFD5]">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </div>
+                  <h3 className="font-serif font-bold text-base text-[#3C2F2F]">Edit Kontak</h3>
+                </div>
+                <button onClick={() => setEditContactModalOpen(false)} className="p-1 hover:bg-[#EFEAE2] rounded-md transition-colors">
+                  <X className="h-4 w-4 text-[#A89F95]" />
+                </button>
+              </div>
+
+              <form onSubmit={handleEditContactSubmit} className="space-y-3.5">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">Nama Kontak</label>
+                  <input type="text" required value={editContactName} onChange={e => setEditContactName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-white border border-[#DCd4c6] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] text-[#3C2F2F]" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">Nomor Telepon / WhatsApp</label>
+                  <input type="text" required value={editContactPhone} onChange={e => setEditContactPhone(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-white border border-[#DCd4c6] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] text-[#3C2F2F]" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">Email (Opsional)</label>
+                  <input type="email" value={editContactEmail} onChange={e => setEditContactEmail(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-white border border-[#DCd4c6] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] text-[#3C2F2F]" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">Instagram (Opsional)</label>
+                  <input type="text" placeholder="@username" value={editContactIg} onChange={e => setEditContactIg(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-white border border-[#DCd4c6] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] text-[#3C2F2F]" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">Kategori</label>
+                  <select value={editContactCategory} onChange={e => setEditContactCategory(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-white border border-[#DCd4c6] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] text-[#3C2F2F]">
+                    {contactCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  </select>
+                </div>
+                <div className="flex gap-2 justify-end pt-1">
+                  <button type="button" onClick={() => setEditContactModalOpen(false)}
+                    className="py-2 px-4 bg-[#FAF6F0] hover:bg-[#EFEAE2] border border-[#DCd4c6] text-xs font-semibold rounded-xl text-[#5C4B40] transition-colors">
+                    Batal
+                  </button>
+                  <button type="submit"
+                    className="py-2 px-4 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Simpan Perubahan
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── UNIVERSAL CONFIRM DIALOG ─── */}
+      <AnimatePresence>
+        {confirmOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { setConfirmOpen(false); if (confirmType === "add-contact" || confirmType === "edit-contact") { if (confirmType === "add-contact") setContactModalOpen(true); else setEditContactModalOpen(true); } }}
+              className="absolute inset-0 bg-stone-900/50 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.88, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.88, y: 20 }}
+              transition={{ type: "spring", stiffness: 350, damping: 28 }}
+              className="bg-[#FAF8F5] border border-[#DCd4c6] rounded-2xl w-full max-w-sm p-6 relative z-10 shadow-2xl"
+            >
+              {/* Icon + Title based on type */}
+              <div className="flex flex-col items-center gap-3 mb-5">
+                {(confirmType === "delete-contact" || confirmType === "delete-link" || confirmType === "delete-note") ? (
+                  <div className="w-14 h-14 rounded-full bg-red-50 border-2 border-red-200 flex items-center justify-center">
+                    <Trash2 className="h-7 w-7 text-red-500" />
+                  </div>
+                ) : (confirmType === "edit-contact" || confirmType === "edit-link") ? (
+                  <div className="w-14 h-14 rounded-full bg-amber-50 border-2 border-amber-200 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </div>
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-emerald-50 border-2 border-emerald-200 flex items-center justify-center">
+                    <CheckCircle className="h-7 w-7 text-emerald-600" />
+                  </div>
+                )}
+
+                <div className="text-center">
+                  <h3 className="font-serif font-bold text-base text-[#3C2F2F]">
+                    {confirmType === "delete-contact" && "Hapus Kontak?"}
+                    {confirmType === "delete-link" && "Hapus Link?"}
+                    {confirmType === "delete-note" && "Hapus Catatan?"}
+                    {confirmType === "add-contact" && "Simpan Kontak Baru?"}
+                    {confirmType === "edit-contact" && "Simpan Perubahan Kontak?"}
+                    {confirmType === "edit-link" && "Simpan Perubahan Link?"}
+                  </h3>
+                  <p className="text-xs text-[#7A6F6D] mt-1.5 leading-relaxed">
+                    {(confirmType === "delete-contact" || confirmType === "delete-link" || confirmType === "delete-note") &&
+                      "Tindakan ini tidak dapat dibatalkan. Data akan dihapus permanen."}
+                    {confirmType === "add-contact" && pendingContactData &&
+                      <>Kontak <strong className="text-[#3C2F2F]">{pendingContactData.name}</strong> akan disimpan ke database.</>}
+                    {confirmType === "edit-contact" && editingContact &&
+                      <>Perubahan pada <strong className="text-[#3C2F2F]">{editContactName}</strong> akan disimpan.</>}
+                    {confirmType === "edit-link" && editingLink &&
+                      <>Perubahan pada link <strong className="text-[#3C2F2F]">{editLinkTitle}</strong> akan disimpan.</>}
+                  </p>
+                </div>
+              </div>
+
+              {/* Detail preview for add/edit */}
+              {confirmType === "add-contact" && pendingContactData && (
+                <div className="bg-[#F5F0EA] border border-[#E6DFD5] rounded-xl p-3 mb-4 space-y-1">
+                  <div className="flex gap-2 text-xs"><span className="text-[#A89F95] w-16 shrink-0">Nama</span><span className="font-medium text-[#3C2F2F]">{pendingContactData.name}</span></div>
+                  <div className="flex gap-2 text-xs"><span className="text-[#A89F95] w-16 shrink-0">Telp</span><span className="font-medium text-[#3C2F2F]">{pendingContactData.phone}</span></div>
+                  {pendingContactData.ig && <div className="flex gap-2 text-xs"><span className="text-[#A89F95] w-16 shrink-0">IG</span><span className="font-medium text-purple-600">{pendingContactData.ig}</span></div>}
+                  <div className="flex gap-2 text-xs"><span className="text-[#A89F95] w-16 shrink-0">Kategori</span><span className="font-medium text-[#A07855]">{pendingContactData.category}</span></div>
+                </div>
+              )}
+              {confirmType === "edit-contact" && (
+                <div className="bg-[#F5F0EA] border border-[#E6DFD5] rounded-xl p-3 mb-4 space-y-1">
+                  <div className="flex gap-2 text-xs"><span className="text-[#A89F95] w-16 shrink-0">Nama</span><span className="font-medium text-[#3C2F2F]">{editContactName}</span></div>
+                  <div className="flex gap-2 text-xs"><span className="text-[#A89F95] w-16 shrink-0">Telp</span><span className="font-medium text-[#3C2F2F]">{editContactPhone}</span></div>
+                  {editContactIg && <div className="flex gap-2 text-xs"><span className="text-[#A89F95] w-16 shrink-0">IG</span><span className="font-medium text-purple-600">{editContactIg}</span></div>}
+                  <div className="flex gap-2 text-xs"><span className="text-[#A89F95] w-16 shrink-0">Kategori</span><span className="font-medium text-[#A07855]">{editContactCategory}</span></div>
+                </div>
+              )}
+              {confirmType === "edit-link" && (
+                <div className="bg-[#F5F0EA] border border-[#E6DFD5] rounded-xl p-3 mb-4 space-y-1">
+                  <div className="flex gap-2 text-xs"><span className="text-[#A89F95] w-16 shrink-0">Nama</span><span className="font-medium text-[#3C2F2F]">{editLinkTitle}</span></div>
+                  <div className="flex gap-2 text-xs"><span className="text-[#A89F95] w-16 shrink-0">URL</span><span className="font-medium text-[#A07855] truncate">{editLinkUrl}</span></div>
+                  <div className="flex gap-2 text-xs"><span className="text-[#A89F95] w-16 shrink-0">Kategori</span><span className="font-medium text-[#3C2F2F]">{editLinkCategory}</span></div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setConfirmOpen(false);
+                    if (confirmType === "add-contact") setContactModalOpen(true);
+                    if (confirmType === "edit-contact") setEditContactModalOpen(true);
+                    if (confirmType === "edit-link") setEditLinkModalOpen(true);
+                  }}
+                  className="flex-1 py-2.5 px-4 bg-[#FAF6F0] hover:bg-[#EFEAE2] border border-[#DCd4c6] text-xs font-semibold rounded-xl text-[#5C4B40] transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirmType === "delete-contact") handleConfirmDeleteContact();
+                    else if (confirmType === "delete-link") handleConfirmDeleteLink();
+                    else if (confirmType === "delete-note") handleConfirmDeleteNote();
+                    else if (confirmType === "add-contact") handleConfirmAddContact();
+                    else if (confirmType === "edit-contact") handleConfirmEditContact();
+                    else if (confirmType === "edit-link") handleConfirmEditLink();
+                  }}
+                  className={`flex-1 py-2.5 px-4 text-white text-xs font-semibold rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 ${
+                    (confirmType === "delete-contact" || confirmType === "delete-link" || confirmType === "delete-note")
+                      ? "bg-red-500 hover:bg-red-600 shadow-red-200"
+                      : (confirmType === "edit-contact" || confirmType === "edit-link")
+                        ? "bg-amber-600 hover:bg-amber-700 shadow-amber-200"
+                        : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200"
+                  }`}
+                >
+                  {(confirmType === "delete-contact" || confirmType === "delete-link" || confirmType === "delete-note") && <><Trash2 className="h-3 w-3" /> Ya, Hapus</>}
+                  {confirmType === "add-contact" && <><CheckCircle className="h-3 w-3" /> Ya, Simpan</>}
+                  {(confirmType === "edit-contact" || confirmType === "edit-link") && <><CheckCircle className="h-3 w-3" /> Ya, Perbarui</>}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
