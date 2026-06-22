@@ -50,7 +50,7 @@ interface UserProfile {
 
 // Default categories
 const DEFAULT_LINK_CATEGORIES = ["Website", "Instagram", "Facebook", "YouTube", "Google Drive", "TikTok", "Lainnya"];
-const DEFAULT_CONTACT_CATEGORIES = ["Umum", "Travel", "Jual Buku", "Klien", "Supplier", "Teman", "Keluarga"];
+const DEFAULT_CONTACT_CATEGORIES = ["Umum", "Travel Umroh", "Jual Buku", "Klien", "Supplier", "Teman", "Keluarga"];
 
 export default function NotesWorkspace() {
   const router = useRouter();
@@ -142,14 +142,16 @@ export default function NotesWorkspace() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const session = localStorage.getItem("luma_session");
-    if (!session) {
-      router.replace(`/workspace/login`);
+    // Prefix tidak dikenal → 404 (jangan bocorkan keberadaan /madk)
+    const VALID_PREFIXES = ["madk"];
+    if (!VALID_PREFIXES.includes(prefix)) {
+      router.replace("/not-found");
       return;
     }
 
-    if (prefix !== session) {
-      router.replace(`/${session}/note`);
+    const session = localStorage.getItem("luma_session");
+    if (!session || prefix !== session) {
+      router.replace(`/workspace/login`);
       return;
     }
 
@@ -624,7 +626,7 @@ export default function NotesWorkspace() {
   // Helper: get display initial for contact category
   const getContactCategoryColor = (cat: string) => {
     const colors: Record<string, string> = {
-      "Travel": "bg-sky-100 text-sky-700 border-sky-200",
+      "Travel Umroh": "bg-sky-100 text-sky-700 border-sky-200",
       "Jual Buku": "bg-amber-100 text-amber-700 border-amber-200",
       "Klien": "bg-purple-100 text-purple-700 border-purple-200",
       "Supplier": "bg-orange-100 text-orange-700 border-orange-200",
@@ -823,6 +825,22 @@ export default function NotesWorkspace() {
                 <span className="text-[10px] text-amber-200/80 font-semibold uppercase tracking-wide mt-1">Import Bisnis</span>
               </button>
 
+              {/* Box 7: Portofolio */}
+              <button 
+                onClick={() => router.push(`/${prefix}/portfolio`)}
+                className="relative group bg-gradient-to-b from-[#5C4B40] to-[#3C2F2F] border-[3px] border-[#A07855] rounded-lg p-3 shadow-[0_8px_15px_rgba(0,0,0,0.6),inset_0_2px_8px_rgba(0,0,0,0.5)] active:scale-95 transition-transform flex flex-col items-center justify-center min-h-[110px]"
+              >
+                <div className="absolute inset-0 bg-[#A67C52] opacity-0 group-active:opacity-20 transition-opacity rounded-sm" />
+                <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
+                <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
+                <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
+                <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
+                
+                <Sparkles className="h-8 w-8 text-[#FFD700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2" />
+                <span className="font-bold text-lg text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] leading-none mt-1">Portofolio</span>
+                <span className="text-[10px] text-amber-200/80 font-semibold uppercase tracking-wide mt-1">Manajemen Porto</span>
+              </button>
+
             </div>
 
             {/* Mascot & Dialog Bubble */}
@@ -994,6 +1012,13 @@ export default function NotesWorkspace() {
               >
                 <Building2 className="h-4 w-4 mb-1" />
                 <span className="text-[10px] uppercase tracking-wider font-semibold">Bisnis</span>
+              </button>
+              <button
+                onClick={() => router.push(`/${prefix}/portfolio`)}
+                className={`flex-1 flex flex-col items-center py-2 px-1 rounded-xl transition-all duration-200 border bg-[#FAF6F0] border-transparent text-[#A07855] hover:bg-[#EFEAE2]/50`}
+              >
+                <Sparkles className="h-4 w-4 mb-1" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold">Porto</span>
               </button>
             </div>
 

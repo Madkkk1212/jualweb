@@ -100,7 +100,7 @@ export const projects: Project[] = [
   {
     title: "Atuna Umroh Jambi",
     tag: "Travel - Umrah & Haji",
-    category: "Travel",
+    category: "Travel Umroh",
     desc: "Website layanan travel umrah dan haji terpercaya di Jambi dengan paket eksklusif, pelayanan sesuai sunnah, dan pengalaman ibadah yang tak terlupakan.",
     img: "/img/haji.png",
     link: "https://atunaumrohjambi-luma.vercel.app/",

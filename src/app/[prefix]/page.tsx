@@ -1,30 +1,13 @@
-"use client";
+import { notFound, redirect } from "next/navigation";
 
-import { useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+// Daftar prefix workspace yang valid
+const VALID_PREFIXES = ["madk"];
 
-export default function PrefixPage() {
-  const router = useRouter();
-  const params = useParams();
-  const prefix = params?.prefix as string;
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && prefix) {
-      const session = localStorage.getItem("luma_session");
-      if (session) {
-        router.replace(`/${session}/note`);
-      } else {
-        router.replace(`/workspace/login`);
-      }
-    }
-  }, [router, prefix]);
-
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-[#F8F4EE]">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-2 border-[#5C4B40] border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm text-[#7A6F6D] font-medium tracking-wide">Memuat workspace...</p>
-      </div>
-    </div>
-  );
+export default function PrefixPage({ params }: { params: { prefix: string } }) {
+  if (VALID_PREFIXES.includes(params.prefix)) {
+    // Prefix valid → arahkan ke login workspace
+    redirect("/workspace/login");
+  }
+  // Prefix tidak dikenal → tampilkan 404
+  notFound();
 }

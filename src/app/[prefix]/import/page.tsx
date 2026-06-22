@@ -95,7 +95,7 @@ export default function ImportBisnisWorkspace() {
   const [isImporting, setIsImporting] = useState(false);
   const [importLogs, setImportLogs] = useState<string[]>([]);
   const [importCategory, setImportCategory] = useState("Umum");
-  const [contactCategories, setContactCategories] = useState<string[]>(["Umum", "Travel", "Jual Buku", "Klien", "Supplier", "Teman", "Keluarga"]);
+  const [contactCategories, setContactCategories] = useState<string[]>(["Umum", "Travel Umroh", "Jual Buku", "Klien", "Supplier", "Teman", "Keluarga"]);
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -108,14 +108,16 @@ export default function ImportBisnisWorkspace() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const session = localStorage.getItem("luma_session");
-    if (!session) {
-      router.replace(`/workspace/login`);
+    // Prefix tidak dikenal → 404 (jangan bocorkan keberadaan /madk)
+    const VALID_PREFIXES = ["madk"];
+    if (!VALID_PREFIXES.includes(prefix)) {
+      router.replace("/not-found");
       return;
     }
 
-    if (prefix !== session) {
-      router.replace(`/${session}/import`);
+    const session = localStorage.getItem("luma_session");
+    if (!session || prefix !== session) {
+      router.replace(`/workspace/login`);
       return;
     }
 

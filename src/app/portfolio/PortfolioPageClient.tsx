@@ -1,12 +1,51 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, Github, MonitorPlay } from "lucide-react";
-import { projects } from "@/data/projects";
+import { projects, type Project } from "@/data/projects";
+import { supabase } from "@/lib/supabase";
 
 export default function PortfolioPageClient() {
   const [activeCategory, setActiveCategory] = useState<string>("Semua");
+  const [dbProjects, setDbProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    async function fetchCustomPortfolios() {
+      try {
+        const { data, error } = await supabase
+          .from("portfolios")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching portfolios from Supabase:", error);
+          return;
+        }
+
+        if (data) {
+          const mapped: Project[] = data.map((p) => ({
+            title: p.title,
+            tag: p.tag || p.category,
+            category: p.category,
+            desc: p.description,
+            img: p.img,
+            link: p.link || undefined,
+            github: p.github || undefined,
+          }));
+          setDbProjects(mapped);
+        }
+      } catch (err) {
+        console.error("Exception fetching portfolios:", err);
+      }
+    }
+
+    fetchCustomPortfolios();
+  }, []);
+
+  const allProjects = useMemo(() => {
+    return [...projects, ...dbProjects];
+  }, [dbProjects]);
 
   const getProjectUrlLabel = (link?: string) => {
     if (!link) return null;
@@ -19,14 +58,14 @@ export default function PortfolioPageClient() {
   };
 
   const categories = useMemo(() => {
-    const cats = new Set(projects.map((p) => p.category));
+    const cats = new Set(allProjects.map((p) => p.category));
     return ["Semua", ...Array.from(cats)];
-  }, []);
+  }, [allProjects]);
 
   const filteredProjects = useMemo(() => {
-    if (activeCategory === "Semua") return projects;
-    return projects.filter((p) => p.category === activeCategory);
-  }, [activeCategory]);
+    if (activeCategory === "Semua") return allProjects;
+    return allProjects.filter((p) => p.category === activeCategory);
+  }, [activeCategory, allProjects]);
 
   return (
     <div className="min-h-screen pt-16 md:pt-32 pb-12 md:pb-24 px-6 bg-transparent relative overflow-hidden">
@@ -35,20 +74,24 @@ export default function PortfolioPageClient() {
       <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-rose-500/[0.02] rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto">
-        <div className="mb-12">
-          <div className="flex flex-col md:flex-row items-end justify-between gap-8 border-b border-border pb-12">
-            <div className="max-w-3xl">
-              <h1 className="text-4xl md:text-8xl font-black text-foreground mb-8 tracking-tighter leading-[0.9]">
-                Koleksi <br />
-                <span className="text-gradient-blue text-glow-blue underline decoration-accent-blue/10 italic">Karya Terbaik.</span>
-              </h1>
-              <p className="text-lg md:text-2xl text-foreground/50 font-medium leading-relaxed max-w-2xl">
-                Jelajahi bagaimana kami membantu berbagai bisnis tampil lebih profesional 
-                dan mencapai hasil maksimal melalui website premium kami.
-              </p>
-            </div>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="mb-20 mt-8 flex flex-col items-center text-center pb-16 border-b border-border"
+        >
+          <div className="max-w-[700px] flex flex-col items-center">
+            <span className="inline-block py-1.5 px-4 mb-6 rounded-full bg-accent-blue/5 border border-accent-blue/10 text-accent-blue text-xs font-bold uppercase tracking-widest">
+              Template Website
+            </span>
+            <h1 className="text-5xl md:text-7xl font-black text-foreground mb-8 tracking-tighter leading-[1.1]">
+              Template Pilihan.
+            </h1>
+            <p className="text-lg md:text-xl text-foreground/50 font-medium leading-relaxed">
+              Jelajahi koleksi template website untuk berbagai jenis bisnis. Setiap template dapat dikustomisasi mulai dari warna, konten, fitur, hingga identitas visual agar sesuai dengan kebutuhan brand Anda. Ini hanya sebuah contoh jika mau lebih custom bisa langsung ke admin.
+            </p>
           </div>
-        </div>
+        </motion.div>
 
         <div className="flex flex-col lg:flex-row gap-12">
           <div className="lg:w-1/4 shrink-0">
@@ -59,15 +102,14 @@ export default function PortfolioPageClient() {
                   <button
                     key={category}
                     onClick={() => setActiveCategory(category)}
-                    className={`text-left px-4 py-3 rounded-xl font-medium transition-all ${
-                      activeCategory === category
+                    className={`text-left px-4 py-3 rounded-xl font-medium transition-all ${activeCategory === category
                         ? "bg-accent-blue/10 text-accent-blue border border-accent-blue/20"
                         : "text-foreground/70 hover:bg-foreground/5 hover:text-foreground border border-transparent"
-                    }`}
+                      }`}
                   >
                     {category}
                     <span className="float-right text-xs opacity-50 relative top-1">
-                      {category === "Semua" ? projects.length : projects.filter((p) => p.category === category).length}
+                      {category === "Semua" ? allProjects.length : allProjects.filter((p) => p.category === category).length}
                     </span>
                   </button>
                 ))}

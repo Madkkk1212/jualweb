@@ -49,7 +49,7 @@ const TEMPLATE_CATEGORIES = [
   "Follow Up", "Penawaran Jasa", "Penawaran Website", "Penawaran Aplikasi",
   "Reminder Pembayaran", "Reminder Meeting", "Ucapan Selamat Pagi",
   "Ucapan Selamat Siang", "Ucapan Selamat Malam", "Broadcast Informasi",
-  "Customer Lama", "Customer Baru", "Travel", "Sekolah", "Pemerintahan", "UMKM", "Custom"
+  "Customer Lama", "Customer Baru", "Travel Umroh", "Sekolah", "Pemerintahan", "UMKM", "Custom"
 ];
 
 export default function WhatsAppWorkspace() {
@@ -92,21 +92,23 @@ export default function WhatsAppWorkspace() {
   const [contactForm, setContactForm] = useState({ id: "", name: "", phone: "", ig: "", category: "Umum", website: "" });
   const [websiteFilter, setWebsiteFilter] = useState<string>("all");
   
-  const [dbContactCategories, setDbContactCategories] = useState<string[]>(["Umum", "Travel", "Jual Buku", "Klien", "Supplier", "Teman", "Keluarga"]);
+  const [dbContactCategories, setDbContactCategories] = useState<string[]>(["Umum", "Travel Umroh", "Jual Buku", "Klien", "Supplier", "Teman", "Keluarga"]);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const session = localStorage.getItem("luma_session");
-    if (!session) {
-      router.replace(`/workspace/login`);
+    // Prefix tidak dikenal → 404 (jangan bocorkan keberadaan /madk)
+    const VALID_PREFIXES = ["madk"];
+    if (!VALID_PREFIXES.includes(prefix)) {
+      router.replace("/not-found");
       return;
     }
-    
-    if (prefix !== session) {
-      router.replace(`/${session}/whatsapp`);
+
+    const session = localStorage.getItem("luma_session");
+    if (!session || prefix !== session) {
+      router.replace(`/workspace/login`);
       return;
     }
     setUserId(session);
