@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, Users, Plus, Trash2, Edit, Send, 
   CheckCircle, Loader2, MessageCircle, ArrowLeft, 
   Save, AlertCircle, CheckSquare, Square, X, Instagram,
-  ExternalLink, Maximize2
+  ExternalLink, Maximize2, Building2
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -56,6 +56,8 @@ export default function WhatsAppWorkspace() {
   const params = useParams();
   const prefix = (params?.prefix as string) || "workspace";
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   // Auth & Data states
   const [userId, setUserId] = useState<string>("madk");
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -87,6 +89,10 @@ export default function WhatsAppWorkspace() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [contactForm, setContactForm] = useState({ id: "", name: "", phone: "", ig: "", category: "Umum" });
+  
+  const [dbContactCategories, setDbContactCategories] = useState<string[]>(["Umum", "Travel", "Jual Buku", "Klien", "Supplier", "Teman", "Keluarga"]);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -105,23 +111,62 @@ export default function WhatsAppWorkspace() {
     loadData(session);
   }, [router, prefix]);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setShowCategoryDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const loadData = async (user: string) => {
     setIsLoading(true);
     try {
-      const [contactsRes, linksRes, templatesRes, historyRes] = await Promise.all([
+      const [contactsRes, linksRes, templatesRes, historyRes, businessesRes, catsRes] = await Promise.all([
         supabase.from("contacts").select("*").eq("user_id", user).order("created_at", { ascending: false }),
         supabase.from("links").select("*").eq("user_id", user).order("created_at", { ascending: false }),
         supabase.from("whatsapp_templates").select("*").eq("user_id", user).order("created_at", { ascending: false }),
         supabase.from("whatsapp_send_history").select("*").eq("user_id", user).order("created_at", { ascending: false }).limit(50),
+        supabase.from("businesses").select("*").eq("user_id", user).not("phone", "is", null).order("created_at", { ascending: false }),
+        supabase.from("user_categories").select("*").eq("user_id", user).eq("type", "contacts")
       ]);
 
-      if (contactsRes.data) {
-        setContacts(contactsRes.data.map((c: { id: string; name: string; phone: string; email?: string; category?: string; ig?: string }) => ({
-          id: c.id, name: c.name, phone: c.phone,
-          email: c.email || "", category: c.category || "Umum",
-          ig: c.ig || "",
-        })));
-      }
+      const fetchedContacts = contactsRes.data ? (contactsRes.data as {
+        id: string;
+        name: string;
+        phone: string;
+        email?: string | null;
+        category?: string | null;
+        ig?: string | null;
+      }[]).map((c) => ({
+        id: c.id, name: c.name, phone: c.phone,
+        email: c.email || "", category: c.category || "Umum",
+        ig: c.ig || "",
+      })) : [];
+
+      const fetchedBusinesses = businessesRes.data ? (businessesRes.data as {
+        id: string;
+        name: string;
+        phone: string | null;
+        contact_name?: string | null;
+        category?: string | null;
+        instagram?: string | null;
+      }[])
+        .filter((b) => b.phone && b.phone !== "—" && b.phone !== "-")
+        .map((b) => ({
+          id: `biz-${b.id}`,
+          name: b.name,
+          phone: b.phone as string,
+          email: b.contact_name || "",
+          category: b.category || "Bisnis",
+          ig: b.instagram || "",
+        })) : [];
+
+      setContacts([...fetchedContacts, ...fetchedBusinesses]);
       
       if (linksRes.data) {
         setLinks(linksRes.data);
@@ -134,6 +179,13 @@ export default function WhatsAppWorkspace() {
       if (historyRes.data) {
         setHistory(historyRes.data);
       }
+
+      if (catsRes.data && catsRes.data.length > 0) {
+        const catData = catsRes.data[0];
+        if (catData.categories?.length) {
+          setDbContactCategories(catData.categories);
+        }
+      }
     } catch (err) {
       console.error("Supabase load error:", err);
     } finally {
@@ -143,6 +195,12 @@ export default function WhatsAppWorkspace() {
 
   // --- Filtering & Categories ---
   const contactCategories = ["Semua", ...Array.from(new Set(contacts.map(c => c.category).filter(Boolean)))];
+
+  const allAvailableCategories = Array.from(new Set([
+    ...dbContactCategories,
+    ...contacts.map(c => c.category).filter(Boolean)
+  ])).filter(cat => cat !== "Semua" && cat !== "Bisnis" && cat !== "Umum").sort();
+  const categoriesList = ["Umum", "Bisnis", ...allAvailableCategories];
 
   const filteredContacts = contacts.filter((c) => {
     const matchSearch = 
@@ -225,6 +283,75 @@ export default function WhatsAppWorkspace() {
     await supabase.from("whatsapp_templates").delete().eq("id", id);
   };
 
+  const handleDeleteContact = async (contact: Contact) => {
+    if (!confirm(`Hapus kontak "${contact.name}" dari database?`)) return;
+    
+    setIsLoading(true);
+    const isBiz = contact.id.startsWith("biz-");
+    const cleanId = isBiz ? contact.id.replace("biz-", "") : contact.id;
+    
+    let error;
+    if (isBiz) {
+      const { error: err } = await supabase.from("businesses")
+        .delete()
+        .eq("id", cleanId);
+      error = err;
+    } else {
+      const { error: err } = await supabase.from("contacts")
+        .delete()
+        .eq("id", cleanId);
+      error = err;
+    }
+
+    if (error) {
+      alert("Gagal menghapus kontak: " + error.message);
+    } else {
+      setContacts(contacts.filter(c => c.id !== contact.id));
+      if (selectedContacts.has(contact.id)) {
+        const newSet = new Set(selectedContacts);
+        newSet.delete(contact.id);
+        setSelectedContacts(newSet);
+      }
+    }
+    setIsLoading(false);
+  };
+
+  const handleBulkDeleteContacts = async () => {
+    const count = selectedContacts.size;
+    if (count === 0) return;
+    if (!confirm(`Hapus ${count} kontak terpilih secara permanen dari database?`)) return;
+
+    setIsLoading(true);
+    try {
+      const selectedIds = Array.from(selectedContacts);
+      const bizIds = selectedIds.filter(id => id.startsWith("biz-")).map(id => id.replace("biz-", ""));
+      const normalIds = selectedIds.filter(id => !id.startsWith("biz-"));
+
+      const deletePromises = [];
+      if (bizIds.length > 0) {
+        deletePromises.push(supabase.from("businesses").delete().in("id", bizIds));
+      }
+      if (normalIds.length > 0) {
+        deletePromises.push(supabase.from("contacts").delete().in("id", normalIds));
+      }
+
+      const results = await Promise.all(deletePromises);
+      const firstError = results.find(r => r.error);
+      if (firstError) {
+        throw new Error(firstError.error?.message);
+      }
+
+      setContacts(contacts.filter(c => !selectedContacts.has(c.id)));
+      setSelectedContacts(new Set());
+      alert(`Berhasil menghapus ${count} kontak.`);
+    } catch (err) {
+      console.error(err);
+      alert(`Gagal menghapus kontak: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleEditContact = (c: Contact) => {
     setContactForm({ id: c.id, name: c.name, phone: c.phone, ig: c.ig || "", category: c.category || "Umum" });
     setIsEditingContact(true);
@@ -234,14 +361,31 @@ export default function WhatsAppWorkspace() {
     if (!contactForm.name || !contactForm.phone) return;
     
     setIsLoading(true);
-    const { error } = await supabase.from("contacts")
-      .update({
-        name: contactForm.name,
-        phone: contactForm.phone,
-        ig: contactForm.ig,
-        category: contactForm.category
-      })
-      .eq("id", contactForm.id);
+    const isBiz = contactForm.id.startsWith("biz-");
+    const cleanId = isBiz ? contactForm.id.replace("biz-", "") : contactForm.id;
+    
+    let error;
+    if (isBiz) {
+      const { error: err } = await supabase.from("businesses")
+        .update({
+          name: contactForm.name,
+          phone: contactForm.phone,
+          instagram: contactForm.ig || null,
+          category: contactForm.category
+        })
+        .eq("id", cleanId);
+      error = err;
+    } else {
+      const { error: err } = await supabase.from("contacts")
+        .update({
+          name: contactForm.name,
+          phone: contactForm.phone,
+          ig: contactForm.ig,
+          category: contactForm.category
+        })
+        .eq("id", cleanId);
+      error = err;
+    }
 
     if (error) {
       alert("Gagal memperbarui kontak: " + error.message);
@@ -259,8 +403,9 @@ export default function WhatsAppWorkspace() {
   };
 
   const insertVariable = (variable: string) => {
+    let varToInsert = `{${variable}}`;
+    
     setTemplateForm(prev => {
-      let varToInsert = `{${variable}}`;
       if (variable === "website") {
         const matches = prev.content.match(/{website(\d+)}/g);
         let nextNum = 1;
@@ -270,6 +415,27 @@ export default function WhatsAppWorkspace() {
         }
         varToInsert = `{website${nextNum}}`;
       }
+
+      const textarea = textareaRef.current;
+      if (textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = prev.content;
+        const newContent = text.substring(0, start) + varToInsert + text.substring(end);
+        
+        // Focus the textarea and set the cursor position after the inserted variable after render
+        setTimeout(() => {
+          textarea.focus();
+          const newCursorPos = start + varToInsert.length;
+          textarea.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+
+        return {
+          ...prev,
+          content: newContent
+        };
+      }
+      
       return {
         ...prev,
         content: prev.content + varToInsert
@@ -699,7 +865,7 @@ export default function WhatsAppWorkspace() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-[#F8F4EE] overflow-hidden select-none font-sans relative text-[#4A3E3D]">
+    <div className="flex flex-col lg:flex-row h-screen bg-[#F8F4EE] overflow-hidden font-sans relative text-[#4A3E3D]">
       {/* ─── LOADING SCREEN ─── */}
       <AnimatePresence>
         {isLoading && (
@@ -716,14 +882,23 @@ export default function WhatsAppWorkspace() {
 
       {/* ─── SIDEBAR CATEGORIES ─── */}
       <div className="w-[240px] bg-[#FAF6F0] border-r border-[#DCd4c6] flex-col h-full flex-shrink-0 z-10 hidden lg:flex">
-        <div className="p-4 border-b border-[#E6DFD5] flex items-center gap-2">
-          <button onClick={() => router.push(`/${prefix}/note`)} className="p-1.5 bg-white rounded-lg border border-[#DCd4c6] text-[#7A6F6D] hover:text-[#4A3E3D] hover:bg-[#F0EAE1] transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div className="flex items-center gap-2 text-[#22C55E]">
-            <MessageCircle className="h-5 w-5 fill-current" />
-            <span className="font-bold text-[#3C2F2F]">WA Blaster</span>
+        <div className="p-4 border-b border-[#E6DFD5] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button onClick={() => router.push(`/${prefix}/note`)} className="p-1.5 bg-white rounded-lg border border-[#DCd4c6] text-[#7A6F6D] hover:text-[#4A3E3D] hover:bg-[#F0EAE1] transition-colors" title="Kembali ke Catatan">
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-1.5 text-[#22C55E]">
+              <MessageCircle className="h-4 w-4 fill-current" />
+              <span className="font-bold text-[#3C2F2F] text-xs">WA Blaster</span>
+            </div>
           </div>
+          <button 
+            onClick={() => router.push(`/${prefix}/import`)} 
+            className="p-1.5 bg-white hover:bg-[#EFEAE2] rounded-lg border border-[#DCd4c6] text-[#7A6F6D] hover:text-[#A07855] transition-colors"
+            title="Import Bisnis"
+          >
+            <Building2 className="h-4 w-4" />
+          </button>
         </div>
 
         <div className="p-4 flex-1 overflow-y-auto">
@@ -768,14 +943,23 @@ export default function WhatsAppWorkspace() {
       {/* ─── MAIN CONTENT (CONTACTS) ─── */}
       <div className="flex-1 flex flex-col min-w-0 bg-white border-b lg:border-b-0 lg:border-r border-[#E6DFD5] z-10">
         <div className="p-4 border-b border-[#E6DFD5] bg-[#FDFBF7] flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.push(`/${prefix}/note`)} className="lg:hidden p-2 bg-white rounded-xl border border-[#DCd4c6] text-[#7A6F6D] hover:text-[#4A3E3D] hover:bg-[#F0EAE1] transition-colors">
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <div>
-              <h1 className="text-xl font-bold text-[#3C2F2F]">Pilih Kontak</h1>
-              <p className="text-sm text-[#7A6F6D]">Pilih kontak yang ingin Anda kirimi pesan WhatsApp.</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button onClick={() => router.push(`/${prefix}/note`)} className="lg:hidden p-2 bg-white rounded-xl border border-[#DCd4c6] text-[#7A6F6D] hover:text-[#4A3E3D] hover:bg-[#F0EAE1] transition-colors">
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div>
+                <h1 className="text-xl font-bold text-[#3C2F2F]">Pilih Kontak</h1>
+                <p className="text-sm text-[#7A6F6D] hidden sm:block">Pilih kontak yang ingin Anda kirimi pesan WhatsApp.</p>
+              </div>
             </div>
+            <button 
+              onClick={() => router.push(`/${prefix}/import`)} 
+              className="lg:hidden p-2 bg-white hover:bg-[#EFEAE2] rounded-xl border border-[#DCd4c6] text-[#7A6F6D] hover:text-[#A07855] transition-colors flex items-center gap-1 text-xs font-bold"
+            >
+              <Building2 className="h-4 w-4" />
+              <span>Bisnis</span>
+            </button>
           </div>
           
           <div className="flex items-center gap-3">
@@ -789,6 +973,16 @@ export default function WhatsAppWorkspace() {
                 className="w-full pl-9 pr-4 py-2 bg-white border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#A07855]/20 focus:border-[#A07855]"
               />
             </div>
+            {selectedContacts.size > 0 && (
+              <button
+                onClick={handleBulkDeleteContacts}
+                className="px-3 py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shrink-0"
+                title="Hapus kontak terpilih secara permanen"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Hapus Terpilih</span>
+              </button>
+            )}
             <div className="px-3 py-2 bg-[#F0EAE1] rounded-xl border border-[#DCd4c6] text-sm font-semibold text-[#5C4B40] whitespace-nowrap">
               {selectedContacts.size} Terpilih
             </div>
@@ -828,8 +1022,8 @@ export default function WhatsAppWorkspace() {
             <div className="flex-1 grid grid-cols-12 gap-4 text-xs font-bold text-[#A89F95] uppercase tracking-wider">
               <div className="col-span-5">Nama Kontak</div>
               <div className="col-span-3">Nomor WA</div>
-              <div className="col-span-3">Kategori</div>
-              <div className="col-span-1 text-right">Aksi</div>
+              <div className="col-span-2">Kategori</div>
+              <div className="col-span-2 text-right">Aksi</div>
             </div>
           </div>
 
@@ -856,12 +1050,12 @@ export default function WhatsAppWorkspace() {
                   <div className="flex-1 grid grid-cols-12 gap-4 items-center">
                     <div className="col-span-5 font-semibold text-[#3C2F2F] truncate">{contact.name}</div>
                     <div className="col-span-3 text-sm text-[#7A6F6D]">{contact.phone}</div>
-                    <div className="col-span-3">
+                    <div className="col-span-2">
                       <span className="inline-block px-2 py-1 bg-stone-100 text-stone-600 rounded text-[10px] font-bold border border-stone-200 truncate max-w-full">
                         {contact.category}
                       </span>
                     </div>
-                    <div className="col-span-1 flex justify-end">
+                    <div className="col-span-2 flex justify-end gap-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -871,6 +1065,16 @@ export default function WhatsAppWorkspace() {
                         title="Edit Kontak"
                       >
                         <Edit className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteContact(contact);
+                        }}
+                        className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center justify-center"
+                        title="Hapus Kontak"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
@@ -1015,6 +1219,7 @@ export default function WhatsAppWorkspace() {
                     ))}
                   </div>
                   <textarea 
+                    ref={textareaRef}
                     value={templateForm.content}
                     onChange={(e) => setTemplateForm({...templateForm, content: e.target.value})}
                     className="w-full px-3 py-2 border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] min-h-[160px] resize-y placeholder-[#C0B8AD] text-[#3C2F2F] bg-white"
@@ -1108,14 +1313,48 @@ export default function WhatsAppWorkspace() {
                   />
                 </div>
                 
-                <div>
+                <div className="relative" ref={categoryDropdownRef}>
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">Kategori</label>
-                  <input 
-                    type="text" 
-                    value={contactForm.category}
-                    onChange={(e) => setContactForm({...contactForm, category: e.target.value})}
-                    className="w-full px-3 py-2 border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] placeholder-[#C0B8AD] text-[#3C2F2F] bg-white"
-                  />
+                  <div className="relative flex items-center">
+                    <input 
+                      type="text" 
+                      value={contactForm.category}
+                      onChange={(e) => setContactForm({...contactForm, category: e.target.value})}
+                      placeholder="Pilih atau ketik kategori baru..."
+                      className="w-full pl-3 pr-10 py-2 border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] placeholder-[#C0B8AD] text-[#3C2F2F] bg-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                      className="absolute right-0 top-0 bottom-0 px-3 text-[#A89F95] hover:text-[#5C4B40] transition-colors"
+                    >
+                      <svg className={`w-4 h-4 transition-transform duration-200 ${showCategoryDropdown ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {showCategoryDropdown && (
+                    <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-[#DCd4c6] rounded-xl shadow-lg max-h-40 overflow-y-auto py-1 animate-in fade-in slide-in-from-top-1 duration-150">
+                      {categoriesList.map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            setContactForm({...contactForm, category: cat});
+                            setShowCategoryDropdown(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-xs font-semibold text-[#5C4B40] hover:bg-[#FAF6F0] hover:text-[#3C2F2F] transition-colors"
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                      <div className="border-t border-[#FAF6F0] my-1"></div>
+                      <div className="px-3 py-1 text-[9px] text-[#A89F95] italic">
+                        * Anda juga dapat mengetik langsung kategori baru di atas.
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
                 

@@ -8,7 +8,7 @@ import {
   ExternalLink, Menu, X, Calendar, Phone, Mail, Folder,
   CheckCircle, Globe, Instagram, Facebook, Youtube, HardDrive, 
   BookOpen, Sparkles, Lock, LockOpen, ShieldAlert, Eye, EyeOff,
-  Settings, Tag, Loader2, MessageCircle
+  Settings, Tag, Loader2, MessageCircle, Building2
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -666,7 +666,7 @@ export default function NotesWorkspace() {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8F4EE] overflow-hidden select-none font-sans relative text-[#4A3E3D]">
+    <div className="flex h-screen bg-[#F8F4EE] overflow-hidden font-sans relative text-[#4A3E3D]">
 
       {/* ─── LOADING SCREEN ─── */}
       <AnimatePresence>
@@ -794,7 +794,7 @@ export default function NotesWorkspace() {
               {/* Box 5: Create Note */}
               <button 
                 onClick={() => { handleCreateNote(); setMobileView("notes"); }}
-                className="col-span-2 relative group bg-gradient-to-b from-[#285A22] to-[#12310C] border-[3px] border-[#448B39] rounded-lg p-3 shadow-[0_8px_15px_rgba(0,0,0,0.6),inset_0_2px_8px_rgba(0,0,0,0.5)] active:scale-95 transition-transform flex flex-row items-center justify-center gap-3 min-h-[60px]"
+                className="relative group bg-gradient-to-b from-[#285A22] to-[#12310C] border-[3px] border-[#448B39] rounded-lg p-3 shadow-[0_8px_15px_rgba(0,0,0,0.6),inset_0_2px_8px_rgba(0,0,0,0.5)] active:scale-95 transition-transform flex flex-col items-center justify-center min-h-[110px]"
               >
                 <div className="absolute inset-0 bg-[#59B24D] opacity-0 group-active:opacity-20 transition-opacity rounded-sm" />
                 <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
@@ -802,10 +802,25 @@ export default function NotesWorkspace() {
                 <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
                 <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
                 
-                <div className="h-8 w-8 rounded-full bg-gradient-to-b from-[#FDE68A] to-[#D97706] flex items-center justify-center shadow-[0_0_15px_rgba(253,230,138,0.6)]">
-                  <Plus className="h-5 w-5 text-amber-900" />
-                </div>
-                <span className="font-bold text-[14px] text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] leading-tight">Buat Catatan Baru</span>
+                <Plus className="h-8 w-8 text-[#FFD700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2" />
+                <span className="font-bold text-lg text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] leading-none mt-1">Catatan</span>
+                <span className="text-[10px] text-amber-200/80 font-semibold uppercase tracking-wide mt-1">Buat Catatan</span>
+              </button>
+
+              {/* Box 6: Import Bisnis */}
+              <button 
+                onClick={() => router.push(`/${prefix}/import`)}
+                className="relative group bg-gradient-to-b from-[#4A3B32] to-[#2B1D16] border-[3px] border-[#7F6B5F] rounded-lg p-3 shadow-[0_8px_15px_rgba(0,0,0,0.6),inset_0_2px_8px_rgba(0,0,0,0.5)] active:scale-95 transition-transform flex flex-col items-center justify-center min-h-[110px]"
+              >
+                <div className="absolute inset-0 bg-[#A67C52] opacity-0 group-active:opacity-20 transition-opacity rounded-sm" />
+                <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
+                <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
+                <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
+                <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-zinc-800 rounded-full border border-zinc-600 shadow-sm" />
+                
+                <Building2 className="h-8 w-8 text-[#FFD700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2" />
+                <span className="font-bold text-lg text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] leading-none mt-1">Bisnis</span>
+                <span className="text-[10px] text-amber-200/80 font-semibold uppercase tracking-wide mt-1">Import Bisnis</span>
               </button>
 
             </div>
@@ -972,6 +987,13 @@ export default function NotesWorkspace() {
               >
                 <MessageCircle className="h-4 w-4 mb-1" />
                 <span className="text-[10px] uppercase tracking-wider font-semibold">WA</span>
+              </button>
+              <button
+                onClick={() => router.push(`/${prefix}/import`)}
+                className={`flex-1 flex flex-col items-center py-2 px-1 rounded-xl transition-all duration-200 border bg-[#FAF6F0] border-transparent text-[#A07855] hover:bg-[#EFEAE2]/50`}
+              >
+                <Building2 className="h-4 w-4 mb-1" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold">Bisnis</span>
               </button>
             </div>
 

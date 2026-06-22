@@ -1,0 +1,347 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+    xmlns:x="urn:schemas-microsoft-com:office:excel"
+    xmlns="http://www.w3.org/TR/REC-html40">
+  <head><meta charset="UTF-8">
+    <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>
+    <x:ExcelWorksheet><x:Name>Hasil Scraping</x:Name>
+    <x:WorksheetOptions><x:FitToPage/></x:WorksheetOptions>
+    </x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+    <style>
+    body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; }
+    table { border-collapse: collapse; width: 100%; }
+    thead tr { background: #4338CA; color: #fff; height: 28pt; }
+    th { border: 1pt solid #312E81; padding: 6px 10px; text-align: center; font-weight: bold; vertical-align: middle; white-space: nowrap; }
+    td { border: 1pt solid #CBD5E1; padding: 4px 8px; vertical-align: middle; white-space: nowrap; height: 16pt; }
+    .ev { background: #FFFFFF; }
+    .od { background: #F8FAFF; }
+    .num { color: #94A3B8; text-align: center; }
+    .name { font-weight: bold; }
+    .open { color: #059669; font-weight: 600; }
+    .closed { color: #DC2626; font-weight: 600; }
+    .link { color: #2563EB; }
+    .miss { color: #94A3B8; }
+    .center { text-align: center; }
+  </style>
+  </head>
+  <body><table><thead><tr><th>No</th><th>Nama Bisnis</th><th>Rating</th><th>Reviews</th><th>Kategori</th><th>Status</th><th>Harga</th><th>Alamat</th><th>Plus Code</th><th>Telepon</th><th>Website</th><th>Instagram</th><th>Facebook</th><th>TikTok</th><th>Twitter/X</th><th>YouTube</th><th>WhatsApp</th><th>Jam Operasional</th><th>URL Google Maps</th></tr></thead><tbody><tr class="ev">
+      <td class="num">1</td>
+      <td class="name">Andi's Travel Tegal (Alun-Alun Kota Tegal)</td>
+      <td class="center">4.3</td>
+      <td class="center">95</td>
+      <td>Biro Perjalanan dan Wisata</td>
+      <td><span class="open">Buka · Tutup pukul 22.00</span></td>
+      <td class="center">—</td>
+      <td>Jalan Alun-alun No.14, Mangkukusuman, Kec. Tegal Tim., Kota Tegal, Jawa Tengah 52123</td>
+      <td class="miss" style="font-size:9pt">44MP+3V Mangkukusuman, Kota Tegal, Jawa Tengah</td>
+      <td>0877-3037-7770</td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka · Tutup pukul 22.00 </td>
+      <td><span class="link">https://www.google.com/maps/place/Andi%27s+Travel+Tegal+%28Alun-Alun+Kota+Tegal%29/data=!4m7!3m6!1s0x2e6fb77e2bf9ce11:0xcd47ab294caeef11!8m2!3d-6.8672791!4d109.137167!16s%2Fg%2F1pv5vmg83!19sChIJEc75K363by4REe-uTCmrR80?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="od">
+      <td class="num">2</td>
+      <td class="name">Travel Tegal Jakarta (BOSSMANtrans)</td>
+      <td class="center">4.4</td>
+      <td class="center">40</td>
+      <td>Biro Perjalanan dan Wisata</td>
+      <td><span class="open">Buka · Tutup pukul 20.00</span></td>
+      <td class="center">—</td>
+      <td>Jl. Sumbing No.8, Panggung, Kec. Tegal Tim., Kota Tegal, Jawa Tengah 52122</td>
+      <td class="miss" style="font-size:9pt">44HQ+XV Panggung, Kota Tegal, Jawa Tengah</td>
+      <td>0811-3700-360</td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka · Tutup pukul 20.00 </td>
+      <td><span class="link">https://www.google.com/maps/place/Travel+Tegal+Jakarta+%28BOSSMANtrans%29/data=!4m7!3m6!1s0x2e6fb929dce24f91:0xe1bac306eb0e4b32!8m2!3d-6.8700378!4d109.1397057!16s%2Fg%2F11p54v5jzg!19sChIJkU_i3Cm5by4RMksO6wbDuuE?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="ev">
+      <td class="num">3</td>
+      <td class="name">Andi's Travel</td>
+      <td class="center">3.8</td>
+      <td class="center">122</td>
+      <td>Biro Perjalanan dan Wisata</td>
+      <td><span class="open">Buka · Tutup pukul 22.00</span></td>
+      <td class="center">—</td>
+      <td>Jl. Mayjend. S. Parman No.7, Tegalsari, Kec. Tegal Bar., Kota Tegal, Jawa Tengah 52111</td>
+      <td class="miss" style="font-size:9pt">44VM+FM Tegalsari, Kota Tegal, Jawa Tengah</td>
+      <td>(0283) 322788</td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka · Tutup pukul 22.00 </td>
+      <td><span class="link">https://www.google.com/maps/place/Andi%27s+Travel/data=!4m7!3m6!1s0x2e6fb770ca4390c7:0xfd93d1ddb18540f1!8m2!3d-6.8562616!4d109.134236!16s%2Fg%2F11c2p54fg4!19sChIJx5BDynC3by4R8UCFsd3Rk_0?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="od">
+      <td class="num">4</td>
+      <td class="name">Travel Semarang Tegal Cirebon</td>
+      <td class="center">4.9</td>
+      <td class="center">30</td>
+      <td>Biro Perjalanan dan Wisata</td>
+      <td><span class="open">Buka · Tutup pukul 00.00</span></td>
+      <td class="center">—</td>
+      <td>Jl. Soekarno Hatta No.47, Perum Singatara, Palebon, Kec. Pedurungan, Kota Semarang, Jawa Tengah 50246</td>
+      <td class="miss" style="font-size:9pt">XFVC+8G Palebon, Kota Semarang, Jawa Tengah</td>
+      <td>0822-2602-3615</td>
+      <td><span class="link">https://ellsaholidaytravel.blogspot.com/?m=1%20https://wa.me/message/D6EJOTYYY7GNA1</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="link">https://ellsaholidaytravel.blogspot.com/?m=1%20https://wa.me/message/D6EJOTYYY7GNA1</span></td>
+      <td style="font-size:9pt"> Buka · Tutup pukul 00.00 </td>
+      <td><span class="link">https://www.google.com/maps/place/Travel+Semarang+Tegal+Cirebon/data=!4m7!3m6!1s0x2e708d283e43325b:0xe095bcf64b1bf3ef!8m2!3d-7.0067216!4d110.4713671!16s%2Fg%2F11sp4ltr18!19sChIJWzJDPiiNcC4R7_MbS_a8leA?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="ev">
+      <td class="num">5</td>
+      <td class="name">TX Travel Tegal</td>
+      <td class="center">5.0</td>
+      <td class="center">24</td>
+      <td>Agen Tiket</td>
+      <td><span class="open">Buka · Tutup pukul 17.00</span></td>
+      <td class="center">—</td>
+      <td>Keraton Jl. Kapten Ismail No.137, Kraton, Kec. Tegal Bar., Kota Tegal, Jawa Tengah 52112</td>
+      <td class="miss" style="font-size:9pt">44PH+4W Kraton, Kota Tegal, Jawa Tengah</td>
+      <td>(0283) 340799</td>
+      <td><span class="link">http://www.txtravel.com/</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka · Tutup pukul 17.00 </td>
+      <td><span class="link">https://www.google.com/maps/place/TX+Travel+Tegal/data=!4m7!3m6!1s0x2e6fb9df0b500929:0x74320918f3358e3d!8m2!3d-6.8647389!4d109.1298647!16s%2Fg%2F1hc4ks4mx!19sChIJKQlQC9-5by4RPY418xgJMnQ?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="od">
+      <td class="num">6</td>
+      <td class="name">travel Tegal Jogja</td>
+      <td class="center">5.0</td>
+      <td class="center">8</td>
+      <td>Biro Perjalanan dan Wisata</td>
+      <td><span class="open">Buka 24 jam</span></td>
+      <td class="center">—</td>
+      <td>Jl. Nasional 1 No.11-55, Panggung, Kec. Tegal Tim., Kota Tegal, Jawa Tengah 52122</td>
+      <td class="miss" style="font-size:9pt">45R2+67 Panggung, Kota Tegal, Jawa Tengah</td>
+      <td>0812-5232-2478</td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka 24 jam </td>
+      <td><span class="link">https://www.google.com/maps/place/travel+Tegal+Jogja/data=!4m7!3m6!1s0x2e6fb70980d23acb:0xfa76af45bffbca33!8m2!3d-6.859394!4d109.1506351!16s%2Fg%2F11n5x4n_q4!19sChIJyzrSgAm3by4RM8r7v0Wvdvo?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="ev">
+      <td class="num">7</td>
+      <td class="name">Travel Dragon Jaya Express</td>
+      <td class="center">4.3</td>
+      <td class="center">69</td>
+      <td>Biro Perjalanan dan Wisata</td>
+      <td><span class="open">Buka · Tutup pukul 20.30</span></td>
+      <td class="center">—</td>
+      <td>Jl. Kapten Sudibyo No.6, Pekauman, Kec. Tegal Bar., Kota Tegal, Jawa Tengah 52125</td>
+      <td class="miss" style="font-size:9pt">44HH+X6 Pekauman, Kota Tegal, Jawa Tengah</td>
+      <td>0815-4211-1135</td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka · Tutup pukul 20.30 </td>
+      <td><span class="link">https://www.google.com/maps/place/Travel+Dragon+Jaya+Express/data=!4m7!3m6!1s0x2e6fb77dc0a6ec8d:0x9bfed0af72d54363!8m2!3d-6.8700312!4d109.128073!16s%2Fg%2F1pzts03nb!19sChIJjeymwH23by4RY0PVcq_Q_ps?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="od">
+      <td class="num">8</td>
+      <td class="name">Travel Brebes Tegal Semarang Jepara Pati 🌈Travel ® Trans🌈</td>
+      <td class="center">5.0</td>
+      <td class="center">11</td>
+      <td>Layanan Transportasi</td>
+      <td></td>
+      <td class="center">—</td>
+      <td>RT.07/RW.02, Pacul Kulon, Pacul, Kec. Talang, Kabupaten Tegal, Jawa Tengah 52193</td>
+      <td class="miss" style="font-size:9pt">4533+WF Pacul, Kabupaten Tegal, Jawa Tengah</td>
+      <td>0852-2945-2817</td>
+      <td><span class="link">https://wa.me/6285229452817</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="link">https://wa.me/6285229452817</span></td>
+      <td style="font-size:9pt">—</td>
+      <td><span class="link">https://www.google.com/maps/place/Travel+Brebes+Tegal+Semarang+Jepara+Pati+%F0%9F%8C%88Travel+%C2%AE+Trans%F0%9F%8C%88/data=!4m7!3m6!1s0x2e6fb97f15853337:0x38d44295b3744b3b!8m2!3d-6.8951402!4d109.153652!16s%2Fg%2F11sdw68gmc!19sChIJNzOFFX-5by4RO0t0s5VC1Dg?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="ev">
+      <td class="num">9</td>
+      <td class="name">Fazza Trans Tegal</td>
+      <td class="center">5.0</td>
+      <td class="center">45</td>
+      <td>Biro Perjalanan dan Wisata</td>
+      <td><span class="open">Buka 24 jam</span></td>
+      <td class="center">—</td>
+      <td>4429+J2F, Jl. Moh. Toha, Jumumbang, Debong Tengah, Kec. Tegal Sel., Kota Tegal, Jawa Tengah 52192</td>
+      <td class="miss" style="font-size:9pt">—</td>
+      <td>0856-0000-1657</td>
+      <td><span class="link">https://travelyogyakartategalslawi.indonetwork.co.id/</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka 24 jam </td>
+      <td><span class="link">https://www.google.com/maps/place/Fazza+Trans+Tegal/data=!4m7!3m6!1s0x2e6fb9bf830594a7:0x902456e8741eab97!8m2!3d-6.8984341!4d109.1175336!16s%2Fg%2F11fk54qbgz!19sChIJp5QFg7-5by4Rl6sedOhWJJA?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="od">
+      <td class="num">10</td>
+      <td class="name">Daffa Travel</td>
+      <td class="center">5.0</td>
+      <td class="center">26</td>
+      <td>Layanan Transportasi</td>
+      <td><span class="open">Buka 24 jam</span></td>
+      <td class="center">—</td>
+      <td>Jl. Kolonel Sugiono No.7, Pekauman, Kec. Tegal Bar., Kota Tegal, Jawa Tengah 52114</td>
+      <td class="miss" style="font-size:9pt">44JH+62 Pekauman, Kota Tegal, Jawa Tengah</td>
+      <td>0878-3010-1963</td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka 24 jam </td>
+      <td><span class="link">https://www.google.com/maps/place/Daffa+Travel/data=!4m7!3m6!1s0x2e6fb9d83df673cf:0x9cc9433b4a642103!8m2!3d-6.869401!4d109.127522!16s%2Fg%2F1pzs4s_4_!19sChIJz3P2Pdi5by4RAyFkSjtDyZw?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="ev">
+      <td class="num">11</td>
+      <td class="name">TRAVEL PESONA LINTAS MALAM</td>
+      <td class="center">5.0</td>
+      <td class="center">73</td>
+      <td>Biro Perjalanan dan Wisata</td>
+      <td><span class="open">Buka · Tutup pukul 21.00</span></td>
+      <td class="center">—</td>
+      <td>Jl. Teuku Umar Gg. Bahari 2 No.81, Debong Tengah, Kec. Tegal Sel., Kota Tegal, Jawa Tengah 52112</td>
+      <td class="miss" style="font-size:9pt">447G+98 Debong Tengah, Kota Tegal, Jawa Tengah</td>
+      <td>0819-4666-6927</td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka · Tutup pukul 21.00 </td>
+      <td><span class="link">https://www.google.com/maps/place/TRAVEL+PESONA+LINTAS+MALAM/data=!4m7!3m6!1s0x2e6fb9607e152b6f:0xf5c6a02d4d5ef4f9!8m2!3d-6.8866026!4d109.125824!16s%2Fg%2F11nx2y1v1y!19sChIJbysVfmC5by4R-fReTS2gxvU?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="od">
+      <td class="num">12</td>
+      <td class="name">Rama Sakti</td>
+      <td class="center">3.4</td>
+      <td class="center">131</td>
+      <td>Layanan Transportasi</td>
+      <td><span class="open">Buka · Tutup pukul 20.00</span></td>
+      <td class="center">—</td>
+      <td>Jl. Kol. Sudiarto (Komplek Ruko Dwica Square, BLOK A9, Panggung, Kec. Tegal Tim., Kota Tegal, Jawa Tengah 52122</td>
+      <td class="miss" style="font-size:9pt">44PR+GV Panggung, Kota Tegal, Jawa Tengah</td>
+      <td>(0283) 351639</td>
+      <td><span class="link">http://www.ramasakti.com/</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka · Tutup pukul 20.00 </td>
+      <td><span class="link">https://www.google.com/maps/place/Rama+Sakti/data=!4m7!3m6!1s0x2e6fb77e3cc82e81:0xc23abe7b0a4713ca!8m2!3d-6.8636371!4d109.1421335!16s%2Fg%2F1pzqbkdpg!19sChIJgS7IPH63by4RyhNHCnu-OsI?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="ev">
+      <td class="num">13</td>
+      <td class="name">Fariz Tranz Tour & Travel (Tegal Slawi Brebes Semarang Jogja Solo Surabaya Jakarta Demak Kudus Pati Jepara Rembang)</td>
+      <td class="center">5.0</td>
+      <td class="center">3</td>
+      <td>Layanan Transportasi</td>
+      <td></td>
+      <td class="center">—</td>
+      <td>Gg. 3 No.38, RT.05/RW.04, Panggung, Kec. Tegal Tim., Kota Tegal, Jawa Tengah 52122</td>
+      <td class="miss" style="font-size:9pt">44PR+H8 Panggung, Kota Tegal, Jawa Tengah</td>
+      <td>—</td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt">—</td>
+      <td><span class="link">https://www.google.com/maps/place/Fariz+Tranz+Tour+%26+Travel+%28Tegal+Slawi+Brebes+Semarang+Jogja+Solo+Surabaya+Jakarta+Demak+Kudus+Pati+Jepara+Rembang%29/data=!4m7!3m6!1s0x2e6fb75ed22e45cd:0xcb9c80c05c84e462!8m2!3d-6.8635083!4d109.1407854!16s%2Fg%2F11l6679xtl!19sChIJzUUu0l63by4RYuSEXMCAnMs?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="od">
+      <td class="num">14</td>
+      <td class="name">Agen Travel Mso Trans Tegal</td>
+      <td class="center">4.3</td>
+      <td class="center">20</td>
+      <td>Kantor Perusahaan</td>
+      <td><span class="open">Buka · Tutup pukul 02.00</span></td>
+      <td class="center">—</td>
+      <td>Jl. Kresna No.N0. 59, Kejambon, Kec. Tegal Tim., Kota Tegal, Jawa Tengah 52124</td>
+      <td class="miss" style="font-size:9pt">449V+VG Kejambon, Kota Tegal, Jawa Tengah</td>
+      <td>0857-4722-2024</td>
+      <td><span class="link">https://linktr.ee/mso_trans</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka · Tutup pukul 02.00 </td>
+      <td><span class="link">https://www.google.com/maps/place/Agen+Travel+Mso+Trans+Tegal/data=!4m7!3m6!1s0x2e6fb833acbba059:0x61b5718f56ba46fb!8m2!3d-6.8803038!4d109.1438353!16s%2Fg%2F11gg9b9n1k!19sChIJWaC7rDO4by4R-0a6Vo9xtWE?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="ev">
+      <td class="num">15</td>
+      <td class="name">Travel Tegal-Jogja-Solo</td>
+      <td class="center">4.5</td>
+      <td class="center">11</td>
+      <td>—</td>
+      <td><span class="open">Buka · Tutup pukul 21.29</span></td>
+      <td class="center">—</td>
+      <td>Jl. Martoloyo No.35, Panggung, Kec. Tegal Tim., Kota Tegal, Jawa Tengah 52122</td>
+      <td class="miss" style="font-size:9pt">45R2+5R Panggung, Kota Tegal, Jawa Tengah</td>
+      <td>—</td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka · Tutup pukul 21.29 </td>
+      <td><span class="link">https://www.google.com/maps/place/Travel+Tegal-Jogja-Solo/data=!4m7!3m6!1s0x2e6fb73878ae6a8d:0xe587647ceedcb1e!8m2!3d-6.8595963!4d109.1520486!16s%2Fg%2F11n5w7_mr_!19sChIJjWqueDi3by4RHsvtzkd2WA4?authuser=0&hl=id&rclk=1</span></td>
+    </tr><tr class="od">
+      <td class="num">16</td>
+      <td class="name">Nusantara Indah Travel</td>
+      <td class="center">5.0</td>
+      <td class="center">11</td>
+      <td>Layanan Transportasi</td>
+      <td><span class="open">Buka · Tutup pukul 23.00</span></td>
+      <td class="center">—</td>
+      <td>Jl. P. Diponegoro No.105, Mangkukusuman, Kec. Tegal Tim., Kota Tegal, Jawa Tengah 52125</td>
+      <td class="miss" style="font-size:9pt">44FP+WP Mangkukusuman, Kota Tegal, Jawa Tengah</td>
+      <td>0815-8700-002</td>
+      <td><span class="link">http://nusantaraindahtravel.blogspot.co.id/</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td><span class="miss">—</span></td>
+      <td style="font-size:9pt"> Buka · Tutup pukul 23.00 </td>
+      <td><span class="link">https://www.google.com/maps/place/Nusantara+Indah+Travel/data=!4m7!3m6!1s0x2e6fb9d3ad8dbf77:0x86af21aebeb97b62!8m2!3d-6.875176!4d109.136762!16s%2Fg%2F1pv2c_dv5!19sChIJd7-NrdO5by4RYnu5vq4hr4Y?authuser=0&hl=id&rclk=1</span></td>
+    </tr></tbody></table></body>
+  </html>
