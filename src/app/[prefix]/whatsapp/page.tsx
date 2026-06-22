@@ -19,6 +19,7 @@ interface Contact {
   email: string;
   category: string;
   ig?: string;
+  website?: string;
 }
 
 interface StoredLink {
@@ -88,7 +89,8 @@ export default function WhatsAppWorkspace() {
   const [isWebSettingsModalOpen, setIsWebSettingsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isEditingContact, setIsEditingContact] = useState(false);
-  const [contactForm, setContactForm] = useState({ id: "", name: "", phone: "", ig: "", category: "Umum" });
+  const [contactForm, setContactForm] = useState({ id: "", name: "", phone: "", ig: "", category: "Umum", website: "" });
+  const [websiteFilter, setWebsiteFilter] = useState<string>("all");
   
   const [dbContactCategories, setDbContactCategories] = useState<string[]>(["Umum", "Travel", "Jual Buku", "Klien", "Supplier", "Teman", "Keluarga"]);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
@@ -142,10 +144,12 @@ export default function WhatsAppWorkspace() {
         email?: string | null;
         category?: string | null;
         ig?: string | null;
+        website?: string | null;
       }[]).map((c) => ({
         id: c.id, name: c.name, phone: c.phone,
         email: c.email || "", category: c.category || "Umum",
         ig: c.ig || "",
+        website: c.website || "",
       })) : [];
 
       const fetchedBusinesses = businessesRes.data ? (businessesRes.data as {
@@ -155,6 +159,7 @@ export default function WhatsAppWorkspace() {
         contact_name?: string | null;
         category?: string | null;
         instagram?: string | null;
+        website?: string | null;
       }[])
         .filter((b) => b.phone && b.phone !== "—" && b.phone !== "-")
         .map((b) => ({
@@ -164,6 +169,7 @@ export default function WhatsAppWorkspace() {
           email: b.contact_name || "",
           category: b.category || "Bisnis",
           ig: b.instagram || "",
+          website: b.website || "",
         })) : [];
 
       setContacts([...fetchedContacts, ...fetchedBusinesses]);
@@ -207,7 +213,15 @@ export default function WhatsAppWorkspace() {
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
       c.phone.includes(searchQuery);
     const matchCat = activeCategory === "Semua" || c.category === activeCategory;
-    return matchSearch && matchCat;
+    
+    let matchWeb = true;
+    if (websiteFilter === "has_web") {
+      matchWeb = !!c.website && c.website.trim() !== "" && c.website.trim() !== "—" && c.website.trim() !== "-";
+    } else if (websiteFilter === "no_web") {
+      matchWeb = !c.website || c.website.trim() === "" || c.website.trim() === "—" || c.website.trim() === "-";
+    }
+    
+    return matchSearch && matchCat && matchWeb;
   });
 
   // --- Selection Logic ---
@@ -353,7 +367,7 @@ export default function WhatsAppWorkspace() {
   };
 
   const handleEditContact = (c: Contact) => {
-    setContactForm({ id: c.id, name: c.name, phone: c.phone, ig: c.ig || "", category: c.category || "Umum" });
+    setContactForm({ id: c.id, name: c.name, phone: c.phone, ig: c.ig || "", category: c.category || "Umum", website: c.website || "" });
     setIsEditingContact(true);
   };
 
@@ -371,7 +385,8 @@ export default function WhatsAppWorkspace() {
           name: contactForm.name,
           phone: contactForm.phone,
           instagram: contactForm.ig || null,
-          category: contactForm.category
+          category: contactForm.category,
+          website: contactForm.website || null
         })
         .eq("id", cleanId);
       error = err;
@@ -381,7 +396,8 @@ export default function WhatsAppWorkspace() {
           name: contactForm.name,
           phone: contactForm.phone,
           ig: contactForm.ig,
-          category: contactForm.category
+          category: contactForm.category,
+          website: contactForm.website
         })
         .eq("id", cleanId);
       error = err;
@@ -395,7 +411,8 @@ export default function WhatsAppWorkspace() {
         name: contactForm.name,
         phone: contactForm.phone,
         ig: contactForm.ig,
-        category: contactForm.category
+        category: contactForm.category,
+        website: contactForm.website
       } : c));
       setIsEditingContact(false);
     }
@@ -973,6 +990,15 @@ export default function WhatsAppWorkspace() {
                 className="w-full pl-9 pr-4 py-2 bg-white border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#A07855]/20 focus:border-[#A07855]"
               />
             </div>
+            <select
+              value={websiteFilter}
+              onChange={(e) => setWebsiteFilter(e.target.value)}
+              className="text-xs bg-white border border-[#DCd4c6] rounded-xl py-2 px-3 text-[#5C4B40] font-semibold focus:outline-none focus:ring-1 focus:ring-[#A07855] h-[38px]"
+            >
+              <option value="all">Semua</option>
+              <option value="has_web">Ada Website</option>
+              <option value="no_web">Tidak Ada Website</option>
+            </select>
             {selectedContacts.size > 0 && (
               <button
                 onClick={handleBulkDeleteContacts}
@@ -1020,8 +1046,9 @@ export default function WhatsAppWorkspace() {
               )}
             </button>
             <div className="flex-1 grid grid-cols-12 gap-4 text-xs font-bold text-[#A89F95] uppercase tracking-wider">
-              <div className="col-span-5">Nama Kontak</div>
-              <div className="col-span-3">Nomor WA</div>
+              <div className="col-span-4">Nama Kontak</div>
+              <div className="col-span-2">Nomor WA</div>
+              <div className="col-span-2">Website</div>
               <div className="col-span-2">Kategori</div>
               <div className="col-span-2 text-right">Aksi</div>
             </div>
@@ -1048,8 +1075,24 @@ export default function WhatsAppWorkspace() {
                     )}
                   </div>
                   <div className="flex-1 grid grid-cols-12 gap-4 items-center">
-                    <div className="col-span-5 font-semibold text-[#3C2F2F] truncate">{contact.name}</div>
-                    <div className="col-span-3 text-sm text-[#7A6F6D]">{contact.phone}</div>
+                    <div className="col-span-4 font-semibold text-[#3C2F2F] truncate">{contact.name}</div>
+                    <div className="col-span-2 text-sm text-[#7A6F6D]">{contact.phone}</div>
+                    <div className="col-span-2 truncate">
+                      {contact.website ? (
+                        <a
+                          href={contact.website.startsWith("http") ? contact.website : `https://${contact.website}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-blue-600 font-semibold flex items-center gap-1 hover:underline truncate"
+                          onClick={(e) => e.stopPropagation()}
+                          title={contact.website}
+                        >
+                          {contact.website}
+                        </a>
+                      ) : (
+                        <span className="text-stone-400">—</span>
+                      )}
+                    </div>
                     <div className="col-span-2">
                       <span className="inline-block px-2 py-1 bg-stone-100 text-stone-600 rounded text-[10px] font-bold border border-stone-200 truncate max-w-full">
                         {contact.category}
@@ -1355,6 +1398,17 @@ export default function WhatsAppWorkspace() {
                       </div>
                     </div>
                   )}
+                </div>
+                
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#7A6F6D] mb-1.5">Website</label>
+                  <input 
+                    type="text" 
+                    value={contactForm.website}
+                    onChange={(e) => setContactForm({...contactForm, website: e.target.value})}
+                    placeholder="Misal: google.com"
+                    className="w-full px-3 py-2 border border-[#DCd4c6] rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#A07855] focus:border-[#A07855] placeholder-[#C0B8AD] text-[#3C2F2F] bg-white"
+                  />
                 </div>
               </div>
                 

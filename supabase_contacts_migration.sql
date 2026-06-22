@@ -16,8 +16,12 @@ CREATE TABLE public.contacts (
   phone       text NOT NULL DEFAULT '',
   email       text DEFAULT '',
   ig          text DEFAULT '',
-  category    text DEFAULT 'Umum'
+  category    text DEFAULT 'Umum',
+  website     text DEFAULT ''
 );
+
+-- Pastikan kolom website ada jika tabel contacts sudah pernah dibuat sebelumnya
+ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS website text DEFAULT '';
 
 -- 3. Enable RLS
 ALTER TABLE public.contacts ENABLE ROW LEVEL SECURITY;
