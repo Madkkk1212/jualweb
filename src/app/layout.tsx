@@ -163,6 +163,19 @@ export default function RootLayout({
         <link rel="canonical" href={siteConfig.url} />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-accent-blue/30`}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                  for(let registration of registrations) {
+                    registration.unregister();
+                  }
+                });
+              }
+            `,
+          }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

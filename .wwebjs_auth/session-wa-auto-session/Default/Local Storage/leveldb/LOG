@@ -1,0 +1,6 @@
+2026/06/24-15:52:32.237 20d8 Creating DB D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\Local Storage\leveldb since it was missing.
+2026/06/24-15:52:32.293 20d8 Reusing MANIFEST D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\Local Storage\leveldb/MANIFEST-000001
+2026/06/24-15:52:32.293 20d8 Recovering log #7
+2026/06/24-15:52:32.294 20d8 Reusing old log D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\Local Storage\leveldb/000007.log 
+2026/06/24-15:52:32.295 20d8 Delete type=2 #5
+2026/06/24-15:52:32.295 20d8 Delete type=2 #8

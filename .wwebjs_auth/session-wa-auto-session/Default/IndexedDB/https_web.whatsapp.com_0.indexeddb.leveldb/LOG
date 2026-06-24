@@ -1,0 +1,6 @@
+2026/06/24-15:52:36.621 5958 Creating DB D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb since it was missing.
+2026/06/24-15:52:36.690 5958 Reusing MANIFEST D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/06/24-15:52:36.691 5958 Recovering log #148
+2026/06/24-15:52:36.710 5958 Reusing old log D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000148.log 
+2026/06/24-15:52:36.711 5958 Delete type=2 #147
+2026/06/24-15:52:36.711 5958 Delete type=2 #150

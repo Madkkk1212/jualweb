@@ -91,6 +91,7 @@ export default function WhatsAppWorkspace() {
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [contactForm, setContactForm] = useState({ id: "", name: "", phone: "", ig: "", category: "Umum", website: "" });
   const [websiteFilter, setWebsiteFilter] = useState<string>("all");
+  const [sentStatusFilter, setSentStatusFilter] = useState<string>("all");
   
   const [dbContactCategories, setDbContactCategories] = useState<string[]>(["Umum", "Travel Umroh", "Jual Buku", "Klien", "Supplier", "Teman", "Keluarga"]);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
@@ -134,7 +135,7 @@ export default function WhatsAppWorkspace() {
         supabase.from("contacts").select("*").eq("user_id", user).order("created_at", { ascending: false }),
         supabase.from("links").select("*").eq("user_id", user).order("created_at", { ascending: false }),
         supabase.from("whatsapp_templates").select("*").eq("user_id", user).order("created_at", { ascending: false }),
-        supabase.from("whatsapp_send_history").select("*").eq("user_id", user).order("created_at", { ascending: false }).limit(50),
+        supabase.from("whatsapp_send_history").select("*").eq("user_id", user).order("created_at", { ascending: false }).limit(1000),
         supabase.from("businesses").select("*").eq("user_id", user).not("phone", "is", null).order("created_at", { ascending: false }),
         supabase.from("user_categories").select("*").eq("user_id", user).eq("type", "contacts")
       ]);
@@ -223,7 +224,23 @@ export default function WhatsAppWorkspace() {
       matchWeb = !c.website || c.website.trim() === "" || c.website.trim() === "—" || c.website.trim() === "-";
     }
     
-    return matchSearch && matchCat && matchWeb;
+    let matchSent = true;
+    if (sentStatusFilter !== "all") {
+      let phoneToMatch = c.phone.replace(/\D/g, "");
+      if (phoneToMatch.startsWith("0")) phoneToMatch = "62" + phoneToMatch.substring(1);
+      
+      const hasLog = history.some(h => {
+        if (h.contact_phone === phoneToMatch) return true;
+        if (c.ig && h.contact_phone.includes(c.ig)) return true;
+        if (h.contact_name === c.name && h.contact_phone.startsWith("IG:")) return true;
+        return false;
+      });
+
+      if (sentStatusFilter === "sent") matchSent = hasLog;
+      else if (sentStatusFilter === "unsent") matchSent = !hasLog;
+    }
+    
+    return matchSearch && matchCat && matchWeb && matchSent;
   });
 
   // --- Selection Logic ---
@@ -861,7 +878,7 @@ export default function WhatsAppWorkspace() {
         </div>
 
         {/* Action Button Fixed at Bottom Right Panel */}
-        <div className="p-4 border-t border-[#E6DFD5] bg-white shrink-0">
+        <div className="p-4 border-t border-[#E6DFD5] bg-white shrink-0 space-y-2">
           <button
             onClick={handleStartSending}
             disabled={
@@ -877,6 +894,14 @@ export default function WhatsAppWorkspace() {
           >
             <Send className="h-5 w-5" />
             <span>Mulai Kirim ({selectedContacts.size} Kontak)</span>
+          </button>
+          
+          <button
+            onClick={() => router.push(`/${prefix}/whatsapp/auto`)}
+            className="w-full py-3 rounded-xl bg-[#F0EAE1] hover:bg-[#E6DFD5] text-[#A07855] border border-[#DCd4c6] font-bold active:scale-[0.98] transition-all flex items-center justify-center gap-2 font-sans text-sm"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span>Buka Mode WA Auto</span>
           </button>
         </div>
       </div>
@@ -911,13 +936,23 @@ export default function WhatsAppWorkspace() {
               <span className="font-bold text-[#3C2F2F] text-xs">WA Blaster</span>
             </div>
           </div>
-          <button 
-            onClick={() => router.push(`/${prefix}/import`)} 
-            className="p-1.5 bg-white hover:bg-[#EFEAE2] rounded-lg border border-[#DCd4c6] text-[#7A6F6D] hover:text-[#A07855] transition-colors"
-            title="Import Bisnis"
-          >
-            <Building2 className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => router.push(`/${prefix}/whatsapp/auto`)} 
+              className="p-1.5 px-2 bg-[#F0EAE1] hover:bg-[#E6DFD5] rounded-lg border border-[#DCd4c6] text-[#A07855] transition-colors flex items-center gap-1.5 text-[11px] font-bold"
+              title="Auto Blast"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span>Auto</span>
+            </button>
+            <button 
+              onClick={() => router.push(`/${prefix}/import`)} 
+              className="p-1.5 bg-white hover:bg-[#EFEAE2] rounded-lg border border-[#DCd4c6] text-[#7A6F6D] hover:text-[#A07855] transition-colors"
+              title="Import Bisnis"
+            >
+              <Building2 className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         <div className="p-4 flex-1 overflow-y-auto">
@@ -942,15 +977,20 @@ export default function WhatsAppWorkspace() {
           </div>
 
           <div className="mt-8">
-            <h3 className="text-xs font-bold text-[#A89F95] uppercase tracking-widest mb-3">Riwayat Terakhir</h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-xs font-bold text-[#A89F95] uppercase tracking-widest">Riwayat Terakhir</h3>
+              <button onClick={() => router.push(`/${prefix}/whatsapp/history`)} className="text-[10px] font-bold text-[#A07855] hover:underline flex items-center gap-1">
+                Lihat Semua <ExternalLink className="h-3 w-3" />
+              </button>
+            </div>
             <div className="space-y-2">
               {history.slice(0, 5).map(h => (
                 <div key={h.id} className="text-[11px] p-2 bg-white border border-[#E6DFD5] rounded-lg">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-[#5C4B40] truncate max-w-[120px]">{h.contact_name}</span>
+                    <span className="font-bold text-[#5C4B40] truncate max-w-[120px]" title={h.contact_name}>{h.contact_name}</span>
                     <span className="text-[#A89F95]">{new Date(h.created_at).toLocaleDateString("id-ID")}</span>
                   </div>
-                  <div className="text-[#7A6F6D] truncate">{h.template_name}</div>
+                  <div className="text-[#7A6F6D] truncate" title={h.template_name}>{h.template_name}</div>
                 </div>
               ))}
               {history.length === 0 && <div className="text-xs text-[#A89F95] italic">Belum ada riwayat</div>}
@@ -972,13 +1012,23 @@ export default function WhatsAppWorkspace() {
                 <p className="text-sm text-[#7A6F6D] hidden sm:block">Pilih kontak yang ingin Anda kirimi pesan WhatsApp.</p>
               </div>
             </div>
-            <button 
-              onClick={() => router.push(`/${prefix}/import`)} 
-              className="lg:hidden p-2 bg-white hover:bg-[#EFEAE2] rounded-xl border border-[#DCd4c6] text-[#7A6F6D] hover:text-[#A07855] transition-colors flex items-center gap-1 text-xs font-bold"
-            >
-              <Building2 className="h-4 w-4" />
-              <span>Bisnis</span>
-            </button>
+            <div className="flex items-center gap-2 lg:hidden">
+              <button 
+                onClick={() => router.push(`/${prefix}/whatsapp/auto`)} 
+                className="p-2 bg-[#F0EAE1] hover:bg-[#E6DFD5] rounded-xl border border-[#DCd4c6] text-[#A07855] transition-colors flex items-center gap-1 text-xs font-bold"
+                title="WA Auto"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span className="hidden sm:inline">Auto</span>
+              </button>
+              <button 
+                onClick={() => router.push(`/${prefix}/import`)} 
+                className="p-2 bg-white hover:bg-[#EFEAE2] rounded-xl border border-[#DCd4c6] text-[#7A6F6D] hover:text-[#A07855] transition-colors flex items-center gap-1 text-xs font-bold"
+              >
+                <Building2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Bisnis</span>
+              </button>
+            </div>
           </div>
           
           <div className="flex items-center gap-3">
@@ -995,11 +1045,20 @@ export default function WhatsAppWorkspace() {
             <select
               value={websiteFilter}
               onChange={(e) => setWebsiteFilter(e.target.value)}
+              className="text-xs bg-white border border-[#DCd4c6] rounded-xl py-2 px-3 text-[#5C4B40] font-semibold focus:outline-none focus:ring-1 focus:ring-[#A07855] h-[38px] hidden md:block"
+            >
+              <option value="all">Semua Website</option>
+              <option value="has_web">Ada Website</option>
+              <option value="no_web">Tanpa Website</option>
+            </select>
+            <select
+              value={sentStatusFilter}
+              onChange={(e) => setSentStatusFilter(e.target.value)}
               className="text-xs bg-white border border-[#DCd4c6] rounded-xl py-2 px-3 text-[#5C4B40] font-semibold focus:outline-none focus:ring-1 focus:ring-[#A07855] h-[38px]"
             >
-              <option value="all">Semua</option>
-              <option value="has_web">Ada Website</option>
-              <option value="no_web">Tidak Ada Website</option>
+              <option value="all">Semua Status</option>
+              <option value="sent">Sudah Dikirim</option>
+              <option value="unsent">Belum Dikirim</option>
             </select>
             {selectedContacts.size > 0 && (
               <button
@@ -1047,12 +1106,13 @@ export default function WhatsAppWorkspace() {
                 <Square className="h-5 w-5" />
               )}
             </button>
-            <div className="flex-1 grid grid-cols-12 gap-4 text-xs font-bold text-[#A89F95] uppercase tracking-wider">
-              <div className="col-span-4">Nama Kontak</div>
+            <div className="flex-1 grid grid-cols-12 gap-3 text-xs font-bold text-[#A89F95] uppercase tracking-wider">
+              <div className="col-span-3">Nama Kontak</div>
               <div className="col-span-2">Nomor WA</div>
               <div className="col-span-2">Website</div>
-              <div className="col-span-2">Kategori</div>
-              <div className="col-span-2 text-right">Aksi</div>
+              <div className="col-span-1">Kategori</div>
+              <div className="col-span-3">Log Terakhir</div>
+              <div className="col-span-1 text-right">Aksi</div>
             </div>
           </div>
 
@@ -1076,9 +1136,9 @@ export default function WhatsAppWorkspace() {
                       <Square className="h-5 w-5 text-[#C0B8AD]" />
                     )}
                   </div>
-                  <div className="flex-1 grid grid-cols-12 gap-4 items-center">
-                    <div className="col-span-4 font-semibold text-[#3C2F2F] truncate">{contact.name}</div>
-                    <div className="col-span-2 text-sm text-[#7A6F6D]">{contact.phone}</div>
+                  <div className="flex-1 grid grid-cols-12 gap-3 items-center">
+                    <div className="col-span-3 font-semibold text-[#3C2F2F] truncate">{contact.name}</div>
+                    <div className="col-span-2 text-sm text-[#7A6F6D] truncate">{contact.phone}</div>
                     <div className="col-span-2 truncate">
                       {contact.website ? (
                         <a
@@ -1095,12 +1155,35 @@ export default function WhatsAppWorkspace() {
                         <span className="text-stone-400">—</span>
                       )}
                     </div>
-                    <div className="col-span-2">
-                      <span className="inline-block px-2 py-1 bg-stone-100 text-stone-600 rounded text-[10px] font-bold border border-stone-200 truncate max-w-full">
+                    <div className="col-span-1">
+                      <span className="inline-block px-2 py-1 bg-stone-100 text-stone-600 rounded text-[10px] font-bold border border-stone-200 truncate max-w-full" title={contact.category}>
                         {contact.category}
                       </span>
                     </div>
-                    <div className="col-span-2 flex justify-end gap-1">
+                    <div className="col-span-3">
+                      {(() => {
+                        let phoneToMatch = contact.phone.replace(/\D/g, "");
+                        if (phoneToMatch.startsWith("0")) phoneToMatch = "62" + phoneToMatch.substring(1);
+                        
+                        const lastLog = history.find(h => {
+                          if (h.contact_phone === phoneToMatch) return true;
+                          if (contact.ig && h.contact_phone.includes(contact.ig)) return true;
+                          if (h.contact_name === contact.name && h.contact_phone.startsWith("IG:")) return true;
+                          return false;
+                        });
+                        
+                        if (lastLog) {
+                          return (
+                            <div className="flex flex-col">
+                              <span className="text-xs text-[#3C2F2F] font-semibold truncate" title={lastLog.template_name}>{lastLog.template_name}</span>
+                              <span className="text-[10px] text-[#A89F95]">{new Date(lastLog.created_at).toLocaleDateString("id-ID", { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                          );
+                        }
+                        return <span className="text-stone-400 text-xs">—</span>;
+                      })()}
+                    </div>
+                    <div className="col-span-1 flex justify-end gap-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1250,13 +1333,13 @@ export default function WhatsAppWorkspace() {
                     <div className="text-[10px] text-[#A89F95]">Variabel (Klik untuk insert):</div>
                   </div>
                   <div className="flex flex-wrap gap-1.5 mb-2.5">
-                    {["nama", "nomor", "kategori", "tanggal", "instagram", "website"].map(v => (
+                    {["nama", "nomor", "kategori", "tanggal", "instagram", "website", "websitekita"].map(v => (
                       <button 
                         key={v}
                         type="button"
                         onClick={() => insertVariable(v)}
                         className={`px-2 py-1 hover:bg-[#E6DFD5] rounded-md text-[10px] font-mono border border-[#DCd4c6] shadow-sm transition-colors ${
-                          (v === "website" || v === "instagram") ? "bg-[#E2F7CB] text-[#3C2F2F] border-[#CDECA9]" : "bg-[#F0EAE1] text-[#5C4B40]"
+                          (v === "website" || v === "instagram" || v === "websitekita") ? "bg-[#E2F7CB] text-[#3C2F2F] border-[#CDECA9]" : "bg-[#F0EAE1] text-[#5C4B40]"
                         }`}
                       >
                         {`{${v}}`}
@@ -1612,6 +1695,7 @@ export default function WhatsAppWorkspace() {
                           msg = msg.replace(/{nomor}/g, dummyContact.phone);
                           msg = msg.replace(/{kategori}/g, dummyContact.category || "-");
                           msg = msg.replace(/{tanggal}/g, dateStr);
+                          msg = msg.replace(/{websitekita}/g, "lumaspace.web.id");
                           
                           let igText = "-";
                           if (dummyContact.ig && dummyContact.ig.trim() !== "") igText = dummyContact.ig.startsWith("@") ? dummyContact.ig : `@${dummyContact.ig}`;

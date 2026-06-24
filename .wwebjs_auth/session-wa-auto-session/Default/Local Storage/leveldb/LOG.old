@@ -1,0 +1,6 @@
+2026/06/24-14:34:34.129 b64 Reusing MANIFEST D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\Local Storage\leveldb/MANIFEST-000001
+2026/06/24-14:34:34.131 b64 Recovering log #4
+2026/06/24-14:34:34.132 b64 Reusing old log D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\Local Storage\leveldb/000004.log 
+2026/06/24-14:35:34.146 48cc Level-0 table #8: started
+2026/06/24-14:35:34.187 48cc Level-0 table #8: 18017 bytes OK
+2026/06/24-14:35:34.190 48cc Delete type=0 #4
