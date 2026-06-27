@@ -258,7 +258,7 @@ export async function POST(request: Request) {
       }
 
       const msgId = sentMsg.id.id;
-      const initialAck = sentMsg.ack;
+      const initialAck = sentMsg.ack as number;
       console.log(`[WA Auto] [SEND] sendMessage OK: id=${msgId} ack=${initialAck} to=${sentMsg.to}`);
 
       // If ack is already -1 immediately, report error

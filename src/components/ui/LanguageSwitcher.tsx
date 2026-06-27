@@ -3,7 +3,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Globe } from "lucide-react";
 
 export function LanguageSwitcher() {
   const { lang, setLang } = useLanguage();

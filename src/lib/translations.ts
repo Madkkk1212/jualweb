@@ -1002,7 +1002,7 @@ export async function translateToEnglish(text: string): Promise<string> {
     );
     const data = await response.json();
     if (data && data[0]) {
-      return data[0].map((x: any) => x[0]).join("");
+      return (data[0] as string[][]).map((x) => x[0]).join("");
     }
     return text;
   } catch (err) {
