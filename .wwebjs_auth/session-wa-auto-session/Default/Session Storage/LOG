@@ -1,4 +1,2 @@
-2026/06/24-15:52:35.200 21f0 Creating DB D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\Session Storage since it was missing.
-2026/06/24-15:52:35.229 21f0 Reusing MANIFEST D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\Session Storage/MANIFEST-000001
-2026/06/24-15:52:35.231 21f0 Recovering log #3
-2026/06/24-15:52:35.233 21f0 Reusing old log D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\Session Storage/000003.log 
+2026/06/25-19:47:35.137 3934 Creating DB D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\Session Storage since it was missing.
+2026/06/25-19:47:35.173 3934 Reusing MANIFEST D:\web-luma\pokok\jualweb-main\.wwebjs_auth\session-wa-auto-session\Default\Session Storage/MANIFEST-000001

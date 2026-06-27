@@ -6,9 +6,12 @@ import { ElectricWire } from "../ui/ElectricWire";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const Hero = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
+  const tr = t("hero");
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -80,21 +83,21 @@ export const Hero = () => {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-green"></span>
             </span>
             <span className="text-[9px] sm:text-[10px] font-black text-foreground/60 uppercase tracking-[0.18em] sm:tracking-[0.2em] text-left sm:text-center">
-              LAYANAN PEMBUATAN WEBSITE
+              {tr.badge}
             </span>
           </motion.div>
 
           <h1 className="text-[2.4rem] sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-foreground mb-6 md:mb-10 leading-[1.05] lg:-ml-1">
             <span className="block text-foreground/90 font-extrabold text-[1.9rem] sm:text-4xl md:text-5xl lg:text-6xl tracking-tight mb-1 leading-tight">
-              Layanan Pembuatan
+              {tr.headline1}
             </span>
             <span className="block relative">
               <span className="text-gradient-hero drop-shadow-sm">
-                Website
+                {tr.headline2}
               </span>
               {" "}
               <span className="relative inline-block">
-                <span className="text-foreground">Profesional</span>
+                <span className="text-foreground">{tr.headline3}</span>
                 <svg className="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 200 6" fill="none" preserveAspectRatio="none">
                   <path d="M0 3 Q50 0 100 3 Q150 6 200 3" stroke="url(#g1)" strokeWidth="2.5" strokeLinecap="round"/>
                   <defs>
@@ -107,8 +110,8 @@ export const Hero = () => {
               </span>
             </span>
             <span className="block text-[1.5rem] sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground/50 tracking-normal mt-2 leading-snug">
-              yang bikin bisnis lebih{" "}
-              <span className="text-gradient-hero font-black">dipercaya.</span>
+              {tr.headline4}{" "}
+              <span className="text-gradient-hero font-black">{tr.headline5}</span>
             </span>
           </h1>
 
@@ -127,27 +130,25 @@ export const Hero = () => {
                 <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                 <path fill="#EA4335" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
               </svg>
-              <span className="text-xs font-bold text-sky-400">SEO Friendly</span>
+              <span className="text-xs font-bold text-sky-400">{tr.seoBadge1}</span>
               <span className="w-px h-4 bg-white/10"/>
-              <span className="text-xs font-bold text-sky-300">✦ Tampil di Google</span>
+              <span className="text-xs font-bold text-sky-300">{tr.seoBadge2}</span>
             </div>
           </motion.div>
 
           <p className="text-base sm:text-lg md:text-2xl text-foreground/70 mb-8 md:mb-12 leading-relaxed max-w-xl font-medium mx-auto lg:mx-0">
-            Kami membantu UMKM dan bisnis tampil lebih profesional lewat website cepat,
-            desain premium, struktur SEO friendly, dan alur yang dibuat untuk meningkatkan
-            peluang chat, order, dan closing.
+            {tr.desc}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 justify-center lg:justify-start">
-            <Link href="#pricing" className="w-full sm:w-auto">
+            <Link href="/portfolio" className="w-full sm:w-auto">
               <Button variant="primary" size="lg" className="w-full sm:w-auto px-6 md:px-10 py-4 md:py-5 text-base md:text-lg shadow-premium hover:shadow-hover group">
-                Konsultasi Gratis <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                {tr.cta1} <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="https://wa.me/6289514618737" target="_blank" className="w-full sm:w-auto">
               <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 md:px-10 py-4 md:py-5 text-base md:text-lg border-border/60 hover:border-accent-blue/40 bg-white/5 backdrop-blur-sm">
-                Tanya Harga Paket
+                {tr.cta2}
               </Button>
             </Link>
           </div>
@@ -176,7 +177,7 @@ export const Hero = () => {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-green"></span>
               </span>
               <span className="text-[9px] sm:text-[10px] font-black text-foreground/60 uppercase tracking-[0.18em] sm:tracking-[0.2em] text-center">
-                LAYANAN PEMBUATAN WEBSITE
+                {tr.badge}
               </span>
             </div>
             {/* Badge 2: Google */}
@@ -187,9 +188,9 @@ export const Hero = () => {
                 <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                 <path fill="#EA4335" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
               </svg>
-              <span className="text-xs font-bold text-sky-400">SEO Friendly</span>
+              <span className="text-xs font-bold text-sky-400">{tr.seoBadge1}</span>
               <span className="w-px h-4 bg-white/10"/>
-              <span className="text-xs font-bold text-sky-300">✦ Tampil di Google</span>
+              <span className="text-xs font-bold text-sky-300">{tr.seoBadge2}</span>
             </div>
           </motion.div>
 
@@ -213,7 +214,7 @@ export const Hero = () => {
                   className="absolute top-4 sm:top-10 -left-4 sm:-left-10 md:left-10 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-4 py-3 rounded-2xl rounded-bl-none shadow-[0_10px_40px_-10px_rgba(59,130,246,0.3)] border border-accent-blue/20 z-30 max-w-[200px]"
                 >
                   <p className="text-xs sm:text-sm font-bold leading-tight">
-                    Hi, saya Luma! Yuk buat website yang mudah ditemukan di Google 👋
+                    {tr.robotMsg}
                   </p>
                   <div className="absolute bottom-[-8px] left-0 w-4 h-4 bg-white dark:bg-zinc-800 border-b border-l border-accent-blue/20 rounded-bl-sm transform rotate-[-45deg]"></div>
                 </motion.div>

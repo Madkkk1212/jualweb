@@ -6,48 +6,52 @@ import Link from "next/link";
 import { siteConfig } from "@/lib/seo";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // ── metadata dipindah ke generateMetadata (server) tapi karena "use client"
 // kita pakai layout metadata di parent atau buat file terpisah
 
-const contactInfo = [
-  {
-    icon: MessageCircle,
-    label: "WhatsApp",
-    value: "0895-1461-8737",
-    href: siteConfig.whatsapp,
-    color: "text-accent-green",
-    bg: "bg-accent-green/10",
-  },
-  {
-    icon: Mail,
-    label: "Email",
-    value: "lumaspace@gmail.com",
-    href: "mailto:lumaspace@gmail.com",
-    color: "text-accent-blue",
-    bg: "bg-accent-blue/10",
-  },
-  {
-    icon: Instagram,
-    label: "Instagram",
-    value: "@lumaspace.web.id",
-    href: "https://www.instagram.com/lumaspace.web.id/",
-    color: "text-purple-400",
-    bg: "bg-purple-400/10",
-  },
-  {
-    icon: MapPin,
-    label: "Lokasi",
-    value: "Jambi, Indonesia",
-    href: "#",
-    color: "text-red-400",
-    bg: "bg-red-400/10",
-  },
-];
-
 type FormState = "idle" | "loading" | "success" | "error";
 
 export default function ContactPage() {
+  const { t } = useLanguage();
+  const tr = t("contact");
+
+  const contactInfo = [
+    {
+      icon: MessageCircle,
+      label: "WhatsApp",
+      value: "0895-1461-8737",
+      href: siteConfig.whatsapp,
+      color: "text-accent-green",
+      bg: "bg-accent-green/10",
+    },
+    {
+      icon: Mail,
+      label: "Email",
+      value: "lumaspace@gmail.com",
+      href: "mailto:lumaspace@gmail.com",
+      color: "text-accent-blue",
+      bg: "bg-accent-blue/10",
+    },
+    {
+      icon: Instagram,
+      label: "Instagram",
+      value: "@lumaspace.web.id",
+      href: "https://www.instagram.com/lumaspace.web.id/",
+      color: "text-purple-400",
+      bg: "bg-purple-400/10",
+    },
+    {
+      icon: MapPin,
+      label: tr.locationLabel,
+      value: "Jambi, Indonesia",
+      href: "#",
+      color: "text-red-400",
+      bg: "bg-red-400/10",
+    },
+  ];
+
   const [form, setForm] = useState({
     name: "",
     whatsapp: "",
@@ -66,7 +70,7 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.whatsapp.trim() || !form.message.trim()) {
-      setErrorMsg("Nama, WhatsApp, dan pesan wajib diisi.");
+      setErrorMsg(tr.errorRequired);
       setFormState("error");
       return;
     }
@@ -86,7 +90,7 @@ export default function ContactPage() {
 
       if (error) {
         console.error("Supabase error:", error);
-        setErrorMsg("Terjadi kesalahan saat mengirim pesan. Silakan coba lagi.");
+        setErrorMsg(tr.errorServer);
         setFormState("error");
         return;
       }
@@ -95,7 +99,7 @@ export default function ContactPage() {
       setForm({ name: "", whatsapp: "", instagram: "", message: "" });
     } catch (err) {
       console.error(err);
-      setErrorMsg("Terjadi kesalahan jaringan. Silakan coba lagi.");
+      setErrorMsg(tr.errorNetwork);
       setFormState("error");
     }
   };
@@ -110,14 +114,13 @@ export default function ContactPage() {
           {/* Header */}
           <div className="text-center mb-24">
             <h1 className="text-4xl md:text-8xl font-black text-foreground mb-8 tracking-tighter leading-[0.9]">
-              Mari Kita <br />
+              {tr.heading} <br />
               <span className="text-gradient-blue text-glow-blue underline decoration-accent-blue/10 italic">
-                Bicara.
+                {tr.headingHighlight}
               </span>
             </h1>
             <p className="text-lg md:text-2xl text-foreground/50 max-w-2xl mx-auto font-medium leading-relaxed">
-              Kami siap membantu menjawab semua keraguan Anda. Pilih jalur
-              komunikasi yang paling nyaman bagi Anda.
+              {tr.subtitle}
             </p>
           </div>
 
@@ -157,10 +160,10 @@ export default function ContactPage() {
             <div className="bg-card border border-border/50 rounded-[2.5rem] p-10 md:p-14 shadow-premium">
               <div className="mb-10">
                 <h2 className="text-3xl md:text-4xl font-black text-foreground tracking-tighter mb-3">
-                  Kirim Pesan
+                  {tr.formHeading}
                 </h2>
                 <p className="text-foreground/50 font-medium">
-                  Isi form di bawah dan kami akan segera menghubungi Anda.
+                  {tr.formSubtitle}
                 </p>
               </div>
 
@@ -175,17 +178,17 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-2xl font-black text-foreground mb-2">
-                      Pesan Terkirim!
+                      {tr.successTitle}
                     </h3>
                     <p className="text-foreground/50 font-medium">
-                      Terima kasih! Kami akan menghubungi Anda segera.
+                      {tr.successDesc}
                     </p>
                   </div>
                   <button
                     onClick={() => setFormState("idle")}
                     className="text-sm font-bold text-accent-blue hover:underline"
                   >
-                    Kirim pesan lagi
+                    {tr.sendAnother}
                   </button>
                 </motion.div>
               ) : (
@@ -196,7 +199,7 @@ export default function ContactPage() {
                       htmlFor="name"
                       className="block text-sm font-black text-foreground/60 uppercase tracking-[0.15em] mb-3"
                     >
-                      Nama Lengkap <span className="text-red-400">*</span>
+                      {tr.labelName} <span className="text-red-400">*</span>
                     </label>
                     <input
                       id="name"
@@ -204,7 +207,7 @@ export default function ContactPage() {
                       type="text"
                       value={form.name}
                       onChange={handleChange}
-                      placeholder="Contoh: Budi Santoso"
+                      placeholder={tr.placeholderName}
                       required
                       className="w-full bg-foreground/[0.03] border border-border/60 rounded-2xl px-5 py-4 text-foreground placeholder:text-foreground/30 font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue/60 transition-all"
                     />
@@ -216,7 +219,7 @@ export default function ContactPage() {
                       htmlFor="whatsapp"
                       className="block text-sm font-black text-foreground/60 uppercase tracking-[0.15em] mb-3"
                     >
-                      Nomor WhatsApp <span className="text-red-400">*</span>
+                      {tr.labelWa} <span className="text-red-400">*</span>
                     </label>
                     <input
                       id="whatsapp"
@@ -224,7 +227,7 @@ export default function ContactPage() {
                       type="tel"
                       value={form.whatsapp}
                       onChange={handleChange}
-                      placeholder="Contoh: 08xxxxxxxxxx"
+                      placeholder={tr.placeholderWa}
                       required
                       className="w-full bg-foreground/[0.03] border border-border/60 rounded-2xl px-5 py-4 text-foreground placeholder:text-foreground/30 font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue/60 transition-all"
                     />
@@ -236,9 +239,9 @@ export default function ContactPage() {
                       htmlFor="instagram"
                       className="block text-sm font-black text-foreground/60 uppercase tracking-[0.15em] mb-3"
                     >
-                      Instagram{" "}
+                      {tr.labelIg}{" "}
                       <span className="text-foreground/30 normal-case tracking-normal font-medium">
-                        (opsional)
+                        {tr.labelIgOptional}
                       </span>
                     </label>
                     <div className="relative">
@@ -251,7 +254,7 @@ export default function ContactPage() {
                         type="text"
                         value={form.instagram}
                         onChange={handleChange}
-                        placeholder="username_instagram"
+                        placeholder={tr.placeholderIg}
                         className="w-full bg-foreground/[0.03] border border-border/60 rounded-2xl pl-10 pr-5 py-4 text-foreground placeholder:text-foreground/30 font-medium focus:outline-none focus:ring-2 focus:ring-purple-400/40 focus:border-purple-400/60 transition-all"
                       />
                     </div>
@@ -263,7 +266,7 @@ export default function ContactPage() {
                       htmlFor="message"
                       className="block text-sm font-black text-foreground/60 uppercase tracking-[0.15em] mb-3"
                     >
-                      Pesan / Kebutuhan <span className="text-red-400">*</span>
+                      {tr.labelMessage} <span className="text-red-400">*</span>
                     </label>
                     <textarea
                       id="message"
@@ -271,7 +274,7 @@ export default function ContactPage() {
                       rows={4}
                       value={form.message}
                       onChange={handleChange}
-                      placeholder="Ceritakan kebutuhan website Anda..."
+                      placeholder={tr.placeholderMessage}
                       required
                       className="w-full bg-foreground/[0.03] border border-border/60 rounded-2xl px-5 py-4 text-foreground placeholder:text-foreground/30 font-medium focus:outline-none focus:ring-2 focus:ring-accent-blue/40 focus:border-accent-blue/60 transition-all resize-none"
                     />
@@ -294,12 +297,12 @@ export default function ContactPage() {
                     {formState === "loading" ? (
                       <>
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        Mengirim...
+                        {tr.sending}
                       </>
                     ) : (
                       <>
                         <Send className="h-5 w-5" />
-                        Kirim Pesan
+                        {tr.submit}
                       </>
                     )}
                   </button>

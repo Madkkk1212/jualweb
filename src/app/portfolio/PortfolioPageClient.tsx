@@ -5,8 +5,12 @@ import { motion } from "framer-motion";
 import { ExternalLink, Github, MonitorPlay } from "lucide-react";
 import { projects, type Project } from "@/data/projects";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { translateToEnglish } from "@/lib/translations";
 
 export default function PortfolioPageClient() {
+  const { lang, t } = useLanguage();
+  const tr = t("portfolioPage");
   const [activeCategory, setActiveCategory] = useState<string>("Semua");
   const [dbProjects, setDbProjects] = useState<Project[]>([]);
 
@@ -47,6 +51,63 @@ export default function PortfolioPageClient() {
     return [...projects, ...dbProjects];
   }, [dbProjects]);
 
+  const [translatedProjects, setTranslatedProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function performTranslations() {
+      if (lang === "id") {
+        setTranslatedProjects(allProjects);
+        return;
+      }
+
+      // If English, translate project tag & desc using static translations first, otherwise fallback to Google Translate
+      const translated = await Promise.all(
+        allProjects.map(async (project) => {
+          const staticTrans = tr.projects[project.title];
+          if (staticTrans) {
+            return {
+              ...project,
+              tag: staticTrans.tag,
+              desc: staticTrans.desc,
+              category: tr.categories[project.category.toLowerCase()] || project.category,
+            };
+          }
+
+          // Force translation using free client-side Google Translate API for custom Supabase items
+          const [translatedTag, translatedDesc, translatedCategory] = await Promise.all([
+            translateToEnglish(project.tag),
+            translateToEnglish(project.desc),
+            translateToEnglish(project.category),
+          ]);
+
+          return {
+            ...project,
+            tag: translatedTag,
+            desc: translatedDesc,
+            category: tr.categories[project.category.toLowerCase()] || translatedCategory,
+          };
+        })
+      );
+
+      if (active) {
+        setTranslatedProjects(translated);
+      }
+    }
+
+    performTranslations();
+
+    return () => {
+      active = false;
+    };
+  }, [allProjects, lang, tr.categories, tr.projects]);
+
+  // Reset category filter on language change to avoid mismatch
+  useEffect(() => {
+    setActiveCategory("Semua");
+  }, [lang]);
+
   const getProjectUrlLabel = (link?: string) => {
     if (!link) return null;
 
@@ -58,14 +119,14 @@ export default function PortfolioPageClient() {
   };
 
   const categories = useMemo(() => {
-    const cats = new Set(allProjects.map((p) => p.category));
+    const cats = new Set(translatedProjects.map((p) => p.category));
     return ["Semua", ...Array.from(cats)];
-  }, [allProjects]);
+  }, [translatedProjects]);
 
   const filteredProjects = useMemo(() => {
-    if (activeCategory === "Semua") return allProjects;
-    return allProjects.filter((p) => p.category === activeCategory);
-  }, [activeCategory, allProjects]);
+    if (activeCategory === "Semua") return translatedProjects;
+    return translatedProjects.filter((p) => p.category === activeCategory);
+  }, [activeCategory, translatedProjects]);
 
   return (
     <div className="min-h-screen pt-16 md:pt-32 pb-12 md:pb-24 px-6 bg-transparent relative overflow-hidden">
@@ -82,13 +143,13 @@ export default function PortfolioPageClient() {
         >
           <div className="max-w-[700px] flex flex-col items-center">
             <span className="inline-block py-1.5 px-4 mb-6 rounded-full bg-accent-blue/5 border border-accent-blue/10 text-accent-blue text-xs font-bold uppercase tracking-widest">
-              Template Website
+              {tr.badge}
             </span>
             <h1 className="text-5xl md:text-7xl font-black text-foreground mb-8 tracking-tighter leading-[1.1]">
-              Template Pilihan.
+              {tr.heading}
             </h1>
             <p className="text-lg md:text-xl text-foreground/50 font-medium leading-relaxed">
-              Jelajahi koleksi template website untuk berbagai jenis bisnis. Setiap template dapat dikustomisasi mulai dari warna, konten, fitur, hingga identitas visual agar sesuai dengan kebutuhan brand Anda. Ini hanya sebuah contoh jika mau lebih custom bisa langsung ke admin.
+              {tr.subtitle}
             </p>
           </div>
         </motion.div>
@@ -96,7 +157,7 @@ export default function PortfolioPageClient() {
         <div className="flex flex-col lg:flex-row gap-12">
           <div className="lg:w-1/4 shrink-0">
             <div className="sticky top-32 bg-card border border-border rounded-2xl p-6 shadow-soft">
-              <h2 className="text-lg font-bold text-foreground mb-6">Kategori Filter</h2>
+              <h2 className="text-lg font-bold text-foreground mb-6">{tr.filterHeading}</h2>
               <div className="flex flex-col gap-2">
                 {categories.map((category) => (
                   <button
@@ -107,9 +168,9 @@ export default function PortfolioPageClient() {
                         : "text-foreground/70 hover:bg-foreground/5 hover:text-foreground border border-transparent"
                       }`}
                   >
-                    {category}
+                    {category === "Semua" ? tr.all : category}
                     <span className="float-right text-xs opacity-50 relative top-1">
-                      {category === "Semua" ? allProjects.length : allProjects.filter((p) => p.category === category).length}
+                      {category === "Semua" ? translatedProjects.length : translatedProjects.filter((p) => p.category === category).length}
                     </span>
                   </button>
                 ))}
@@ -168,9 +229,13 @@ export default function PortfolioPageClient() {
                       </h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <span className="text-xs font-bold text-accent-blue uppercase tracking-widest bg-accent-blue/5 border border-accent-blue/10 w-fit px-3 py-1 rounded-full">{project.tag}</span>
+                      <span className="text-xs font-bold text-accent-blue uppercase tracking-widest bg-accent-blue/5 border border-accent-blue/10 w-fit px-3 py-1 rounded-full">
+                        {project.tag}
+                      </span>
                     </div>
-                    <p className="text-base text-foreground/60 font-medium leading-relaxed mt-2">{project.desc}</p>
+                    <p className="text-base text-foreground/60 font-medium leading-relaxed mt-2">
+                      {project.desc}
+                    </p>
                     {project.link && (
                       <a
                         href={project.link}
@@ -189,7 +254,7 @@ export default function PortfolioPageClient() {
                   <div className="w-20 h-20 bg-foreground/5 rounded-full flex items-center justify-center mx-auto mb-6">
                     <MonitorPlay className="w-10 h-10 text-foreground/30" />
                   </div>
-                  <p className="text-xl text-foreground/50 font-medium">Belum ada portofolio di kategori ini.</p>
+                  <p className="text-xl text-foreground/50 font-medium">{tr.empty}</p>
                 </div>
               )}
             </div>

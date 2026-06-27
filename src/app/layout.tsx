@@ -2,13 +2,10 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
-import { Navbar } from "@/components/ui/Navbar";
-import { BottomNav } from "@/components/ui/BottomNav";
-import { Footer } from "@/components/ui/Footer";
-import { ContactCTA } from "@/components/sections/ContactCTA";
 import { WhatsAppFloat } from "@/components/ui/WhatsAppFloat";
 import { siteConfig } from "@/lib/seo";
 import { LayoutWrapper } from "@/components/ui/LayoutWrapper";
+import { ContactCTA } from "@/components/sections/ContactCTA";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -211,10 +208,7 @@ export default function RootLayout({
             </div>
 
             <LayoutWrapper
-              navbar={<Navbar />}
               contactCTA={<ContactCTA />}
-              footer={<Footer />}
-              bottomNav={<BottomNav />}
               whatsAppFloat={<WhatsAppFloat />}
             >
               {children}

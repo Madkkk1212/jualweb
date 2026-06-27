@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const PIXEL_SIZE = 4;
 
@@ -170,50 +171,52 @@ const PixelParticle = ({
   />
 );
 
-/* ── Stat feature cards ── */
-const feats = [
-  {
-    icon: "⚡",
-    title: "Sangat Cepat",
-    desc: "Optimasi khusus untuk waktu muat instan.",
-    color: "#FBBF24",
-    code: "SPEED_MAX",
-    val: 98,
-  },
-  {
-    icon: "🔍",
-    title: "SEO Terpadu",
-    desc: "Struktur pencarian agar bisnis unggul di Google.",
-    color: "#2D5BFF",
-    code: "SEO_SCORE",
-    val: 95,
-  },
-  {
-    icon: "🛡️",
-    title: "Keamanan Lapis",
-    desc: "Enkripsi modern dan proteksi data terbaik.",
-    color: "#10B981",
-    code: "SEC_LEVEL",
-    val: 100,
-  },
-  {
-    icon: "🚀",
-    title: "Sistem Tumbuh",
-    desc: "Arsitektur yang mampu berkembang bersama bisnis.",
-    color: "#A855F7",
-    code: "SCALE_UP",
-    val: 92,
-  },
-];
-
-const techRows = [
-  { label: "Antarmuka", value: "Sistem Modern", color: "#2D5BFF", pct: 97 },
-  { label: "Visual", value: "Desain Adaptif", color: "#00E5FF", pct: 92 },
-  { label: "Cloud", value: "Server Global", color: "#10B981", pct: 88 },
-  { label: "Interaksi", value: "Animasi Halus", color: "#A855F7", pct: 94 },
-];
-
 export const TechStack = () => {
+  const { t } = useLanguage();
+  const tr = t("techStack");
+
+  const feats = [
+    {
+      icon: "⚡",
+      title: tr.feats[0].title,
+      desc: tr.feats[0].desc,
+      color: "#FBBF24",
+      code: "SPEED_MAX",
+      val: 98,
+    },
+    {
+      icon: "🔍",
+      title: tr.feats[1].title,
+      desc: tr.feats[1].desc,
+      color: "#2D5BFF",
+      code: "SEO_SCORE",
+      val: 95,
+    },
+    {
+      icon: "🛡️",
+      title: tr.feats[2].title,
+      desc: tr.feats[2].desc,
+      color: "#10B981",
+      code: "SEC_LEVEL",
+      val: 100,
+    },
+    {
+      icon: "🚀",
+      title: tr.feats[3].title,
+      desc: tr.feats[3].desc,
+      color: "#A855F7",
+      code: "SCALE_UP",
+      val: 92,
+    },
+  ];
+
+  const techRows = [
+    { label: tr.techRows[0].label, value: tr.techRows[0].value, color: "#2D5BFF", pct: 97 },
+    { label: tr.techRows[1].label, value: tr.techRows[1].value, color: "#00E5FF", pct: 92 },
+    { label: tr.techRows[2].label, value: tr.techRows[2].value, color: "#10B981", pct: 88 },
+    { label: tr.techRows[3].label, value: tr.techRows[3].value, color: "#A855F7", pct: 94 },
+  ];
+
   const particles = [
     { x: 10, y: 20, color: "#2D5BFF", delay: 0 },
     { x: 80, y: 15, color: "#00E5FF", delay: 0.8 },
@@ -257,7 +260,7 @@ export const TechStack = () => {
               className="text-[10px] font-black uppercase tracking-[0.25em]"
               style={{ ...pixelStyle, color: "#2D5BFF" }}
             >
-              LAYANAN PEMBUATAN WEBSITE 
+              {tr.badge}
             </span>
             <Px color="#2D5BFF" size={6} />
           </div>
@@ -265,15 +268,13 @@ export const TechStack = () => {
           <h2
             className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-foreground mb-4 leading-tight"
           >
-            Website Cepat.{" "}
+            {tr.heading}{" "}
             <span style={{ ...pixelStyle, color: "#2D5BFF" }}>
-              Hasil Maksimal.
+              {tr.headingHighlight}
             </span>
           </h2>
           <p className="text-base md:text-lg text-foreground/60 max-w-2xl mx-auto font-medium leading-relaxed">
-            Kami tidak menggunakan template murahan. Setiap baris kode dirancang
-            secara khusus untuk memastikan website Anda bukan hanya cantik, tapi
-            juga mesin pertumbuhan bisnis.
+            {tr.subtitle}
           </p>
         </motion.div>
 
@@ -373,7 +374,7 @@ export const TechStack = () => {
                     className="text-[11px] font-black"
                     style={{ ...pixelStyle, color: "#10B981" }}
                   >
-                    SISTEM BERJALAN OPTIMAL — 100%
+                    {tr.systemRunning}
                   </span>
                 </div>
 

@@ -4,15 +4,19 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Clock3, ShieldCheck, MessageCircleMore } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const whatsappUrl = "https://wa.me/6289514618737";
+const itemIcons = [Clock3, ShieldCheck, MessageCircleMore];
 
 export const ConversionStrip = () => {
-  const items = [
-    { icon: Clock3, title: "Respon Cepat", desc: "Cocok untuk calon klien yang ingin langsung tanya harga dan kebutuhan website." },
-    { icon: ShieldCheck, title: "Lebih Meyakinkan", desc: "Copy, desain, dan struktur halaman dibuat untuk menaikkan trust bisnis Anda." },
-    { icon: MessageCircleMore, title: "Langsung Konsultasi", desc: "Tidak perlu ribet. Tinggal chat WhatsApp, jelaskan kebutuhan, lalu kami bantu arahkan paketnya." },
-  ];
+  const { t } = useLanguage();
+  const tr = t("conversionStrip");
+
+  const items = tr.items.map((item, i) => ({
+    ...item,
+    icon: itemIcons[i],
+  }));
 
   return (
     <section className="px-4 sm:px-6 py-6 md:py-8 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)" }}>
@@ -24,14 +28,13 @@ export const ConversionStrip = () => {
       >
         <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-6 md:gap-10 items-center">
           <div>
-            <p className="text-[10px] md:text-sm font-black uppercase tracking-[0.18em] md:tracking-[0.25em] text-accent-blue">Closing Booster</p>
+            <p className="text-[10px] md:text-sm font-black uppercase tracking-[0.18em] md:tracking-[0.25em] text-accent-blue">{tr.sectionLabel}</p>
             <h2 className="mt-3 md:mt-4 text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-white leading-[1.02]">
-              Semakin cepat calon pelanggan yakin,
-              <span className="text-gradient-blue"> semakin besar peluang mereka chat.</span>
+              {tr.heading}
+              <span className="text-gradient-blue">{tr.headingHighlight}</span>
             </h2>
             <p className="mt-4 md:mt-6 max-w-2xl text-sm sm:text-base md:text-lg font-medium leading-relaxed text-white/65">
-              Karena itu halaman ini kami arahkan untuk satu tujuan utama: membuat bisnis Anda terlihat profesional,
-              lalu mendorong pengunjung mengambil tindakan lewat WhatsApp.
+              {tr.desc}
             </p>
           </div>
 
@@ -51,7 +54,7 @@ export const ConversionStrip = () => {
             ))}
 
             <Link href={whatsappUrl} target="_blank" className="inline-flex w-full items-center justify-center rounded-2xl bg-accent-green px-5 md:px-6 py-4 text-xs md:text-sm font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-black transition-transform hover:scale-[1.01] text-center">
-              Chat WhatsApp Sekarang
+              {tr.cta}
             </Link>
           </div>
         </div>

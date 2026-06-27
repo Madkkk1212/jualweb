@@ -3,67 +3,50 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { MessageSquare, Figma, Code2, Rocket } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+const stepIcons = [MessageSquare, Figma, Code2, Rocket];
+const stepColors = ["text-accent-blue", "text-accent-cyan", "text-accent-green", "text-purple-500"];
+const stepBgs = ["bg-accent-blue/5", "bg-accent-cyan/5", "bg-accent-green/5", "bg-purple-500/5"];
 
 export const Process = () => {
-  const steps = [
-    {
-      title: "Diskusi & Strategi",
-      desc: "Kami menggali visi bisnis Anda, menganalisis kompetitor, dan menentukan strategi digital yang paling efektif untuk target market Anda.",
-      icon: MessageSquare,
-      color: "text-accent-blue",
-      bg: "bg-accent-blue/5",
-    },
-    {
-      title: "Desain UI/UX Eksklusif",
-      desc: "Pembuatan desain UI/UX eksklusif yang tidak hanya cantik, tapi juga fungsional dan fokus pada pengalaman pengguna (User Experience).",
-      icon: Figma,
-      color: "text-accent-cyan",
-      bg: "bg-accent-cyan/5",
-    },
-    {
-      title: "Coding & Development",
-      desc: "Proses coding menggunakan Next.js & Tailwind Core untuk memastikan website ringan, cepat, dan aman dari kerentanan digital.",
-      icon: Code2,
-      color: "text-accent-green",
-      bg: "bg-accent-green/5",
-    },
-    {
-      title: "Peluncuran & Optimasi",
-      desc: "Peluncuran website ke server global disertai optimasi SEO dasar dan dukungan teknis untuk memastikan performa awal yang sempurna.",
-      icon: Rocket,
-      color: "text-purple-500",
-      bg: "bg-purple-500/5",
-    },
-  ];
+  const { t } = useLanguage();
+  const tr = t("process");
+
+  const steps = tr.steps.map((step, i) => ({
+    ...step,
+    icon: stepIcons[i],
+    color: stepColors[i],
+    bg: stepBgs[i],
+  }));
 
   return (
     <section id="process" className="py-12 md:py-32 px-6 bg-transparent relative overflow-hidden">
       {/* Subtle atmospheric glow */}
       <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-red-600/[0.03] rounded-full blur-[100px] -z-10 pointer-events-none" />
-      
+
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-24">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-blue/5 border border-accent-blue/10 mb-6 font-bold text-xs text-accent-blue uppercase tracking-widest"
           >
-            Alur Kerja Kami
+            {tr.badge}
           </motion.div>
           <h2 className="text-4xl md:text-8xl font-black text-foreground mb-8 tracking-tighter leading-[0.9]">
-            Proses yang <br />
-            <span className="text-gradient-blue text-glow-blue underline decoration-accent-blue/10 italic">Terstruktur.</span>
+            {tr.heading} <br />
+            <span className="text-gradient-blue text-glow-blue underline decoration-accent-blue/10 italic">{tr.headingHighlight}</span>
           </h2>
           <p className="text-lg md:text-2xl text-foreground/50 max-w-3xl mx-auto font-medium">
-            Dari ide hingga eksekusi, setiap langkah dilakukan dengan ketelitian tinggi 
-            untuk memastikan kualitas terbaik bagi bisnis Anda.
+            {tr.subtitle}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative">
           {/* Background Path Line (Desktop) */}
           <div className="hidden lg:block absolute top-[60px] left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-transparent via-border to-transparent z-0" />
-          
+
           {steps.map((step, i) => (
             <motion.div
               key={step.title}
@@ -80,7 +63,7 @@ export const Process = () => {
                   0{i + 1}
                 </div>
               </div>
-              
+
               <h3 className="text-2xl font-black text-foreground mb-6 tracking-tight">{step.title}</h3>
               <p className="text-lg text-foreground/50 leading-relaxed max-w-[280px] mx-auto font-medium">
                 {step.desc}

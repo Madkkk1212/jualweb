@@ -3,40 +3,11 @@
 import React, { useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Zap, Shield, Globe2, MessageCircle, Palette } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-/* ── Data ─────────────────────────────────────────────────── */
-const items = [
-  {
-    title: "Akses Instan (<1 Detik)",
-    desc: "Pengunjung tidak suka menunggu. Website lambat membuat calon pembeli kabur ke kompetitor. Kami mengoptimasi kecepatan akses hingga milidetik untuk memastikan konversi maksimal tanpa ada prospek yang hilang.",
-    icon: Zap,
-    iconColor: "#92400E",
-  },
-  {
-    title: "Keamanan Standar Bank",
-    desc: "Lindungi reputasi bisnis Anda dari ancaman hacker dan malware. Dilengkapi dengan SSL otomatis, proteksi DDoS tangguh dari Vercel, dan enkripsi data berlapis agar transaksi pelanggan dijamin 100% aman.",
-    icon: Shield,
-    iconColor: "#1E3A8A",
-  },
-  {
-    title: "Dominasi Halaman 1 Google",
-    desc: "Website indah tidak ada gunanya jika tidak ditemukan. Kami menerapkan struktur SEO terbaik, kode semantik, dan skema metadata presisi agar bisnis Anda mudah merajai hasil pencarian Google tanpa iklan mahal.",
-    icon: Globe2,
-    iconColor: "#164E63",
-  },
-  {
-    title: "Sistem Closing Otomatis",
-    desc: "Ubah pengunjung pasif menjadi pembeli aktif. Integrasi tombol WhatsApp interaktif dan alur konversi instan kami rancang khusus untuk mempercepat keputusan beli pelanggan langsung ke WhatsApp Anda.",
-    icon: MessageCircle,
-    iconColor: "#064E3B",
-  },
-  {
-    title: "Desain Eksklusif Anti-Template",
-    desc: "Website murah menggunakan template pasaran yang terlihat murahan dan menurunkan rasa percaya. Kami merancang desain kustom 100% dari nol untuk mencerminkan kredibilitas dan kelas premium bisnis Anda.",
-    icon: Palette,
-    iconColor: "#3B0764",
-  },
-];
+/* ── Icon mapping (order must match translations.features.items) ── */
+const iconList = [Zap, Shield, Globe2, MessageCircle, Palette];
+const iconColorList = ["#92400E", "#1E3A8A", "#164E63", "#064E3B", "#3B0764"];
 
 /* ── Tilt hook ───────────────────────────────────────────── */
 const useTilt = () => {
@@ -58,7 +29,8 @@ const useTilt = () => {
 };
 
 /* ── True frosted glass card ────────────────────────────── */
-const FeatureCard = ({ item, i }: { item: typeof items[0]; i: number }) => {
+type FeatureItem = { title: string; desc: string; icon: React.ElementType; iconColor: string };
+const FeatureCard = ({ item, i }: { item: FeatureItem; i: number }) => {
   const { ref, rotX, rotY, onMove, onLeave } = useTilt();
   return (
     <motion.div
@@ -141,6 +113,14 @@ const FeatureCard = ({ item, i }: { item: typeof items[0]; i: number }) => {
 
 /* ── Main section ────────────────────────────────────────── */
 export const Features = () => {
+  const { t } = useLanguage();
+  const tr = t("features");
+  const items = tr.items.map((item, i) => ({
+    ...item,
+    icon: iconList[i],
+    iconColor: iconColorList[i],
+  }));
+
   return (
     <section
       className="relative py-28 md:py-40 px-4 sm:px-6 overflow-hidden bg-transparent"
@@ -292,12 +272,12 @@ export const Features = () => {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-blue" />
             </span>
             <span className="text-[10px] font-black text-foreground/60 uppercase tracking-[0.24em]">
-              Standar Kualitas Tertinggi
+              {tr.badge}
             </span>
           </motion.div>
 
           <h2 className="text-4xl sm:text-5xl md:text-[5rem] font-black tracking-tighter text-foreground mb-6 leading-[0.93]">
-            Setiap website dirancang sesuai kebutuhan bisnis{" "}
+            {tr.heading}{" "}
             <span
               style={{
                 background: "linear-gradient(135deg, #1E3A8A 0%, #2D5BFF 40%, #7C3AED 100%)",
@@ -306,7 +286,7 @@ export const Features = () => {
                 backgroundClip: "text",
               }}
             >
-              agar tampil lebih terpercaya dan nyaman digunakan di berbagai perangkat.
+              {tr.subtitle}
             </span>
           </h2>
           

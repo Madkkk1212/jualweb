@@ -4,7 +4,7 @@ import qrcode from 'qrcode';
 import fs from 'fs';
 import path from 'path';
 
-// ─── Global State (persists across HMR) ─────────────────────────────────────
+// ─── Global State ─────────────────────────────────────────────────────────────
 /* eslint-disable no-var */
 declare global {
   var waClient: Client | undefined;
@@ -32,8 +32,7 @@ function initClient(isReconnect = false) {
   if (global.waClient || global.waIsInitializing) return;
   global.waIsInitializing = true;
   global.waStatus = isReconnect ? 'RECONNECTING' : 'INITIALIZING';
-
-  console.log(`[WA Auto] ${isReconnect ? 'Reconnecting' : 'Initializing'} client...`);
+  console.log(`[WA Auto] ${isReconnect ? 'Reconnecting' : 'Initializing'} WhatsApp client...`);
 
   const client = new Client({
     authStrategy: new LocalAuth({
@@ -41,7 +40,7 @@ function initClient(isReconnect = false) {
       dataPath: path.join(process.cwd(), '.wwebjs_auth'),
     }),
     puppeteer: {
-      headless: true,
+      headless: false,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -49,81 +48,100 @@ function initClient(isReconnect = false) {
         '--disable-accelerated-2d-canvas',
         '--no-first-run',
         '--no-zygote',
-        '--single-process',
         '--disable-gpu',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
       ],
     },
   });
 
-  // Mark immediately so no double-init
   global.waClient = client;
 
   client.on('qr', async (qr) => {
     global.waStatus = 'NEED_QR';
     global.waQrData = await qrcode.toDataURL(qr);
     global.waIsInitializing = false;
-    console.log('[WA Auto] QR code received — scan required');
+    console.log('[WA Auto] QR received — scan required');
   });
 
-  client.on('loading_screen', () => {
-    const current = global.waStatus as string;
-    if (current !== 'NEED_QR') {
-      global.waStatus = 'RECONNECTING';
-    }
-    console.log('[WA Auto] Loading screen...');
+  client.on('loading_screen', (percent, message) => {
+    console.log(`[WA Auto] Loading: ${percent}% — ${message}`);
+    if (global.waStatus !== 'NEED_QR') global.waStatus = 'RECONNECTING';
   });
 
-  client.on('authenticated', () => {
-    console.log('[WA Auto] Authenticated!');
-  });
+  client.on('authenticated', () => { console.log('[WA Auto] Authenticated!'); });
 
   client.on('ready', () => {
     global.waStatus = 'CONNECTED';
     global.waQrData = undefined;
     global.waIsInitializing = false;
-    console.log('[WA Auto] Client is ready!');
+    console.log(`[WA Auto] READY! Connected as: ${client.info?.wid?.user || 'unknown'}`);
   });
 
-  client.on('disconnected', (reason) => {
+  client.on('change_state', (state) => { console.log(`[WA Auto] State -> ${state}`); });
+
+  client.on('disconnected', async (reason) => {
     console.log(`[WA Auto] Disconnected: ${reason}`);
+    try { await client.destroy(); } catch {}
     global.waClient = undefined;
     global.waIsInitializing = false;
     global.waQrData = undefined;
-
-    // Auto reconnect if session still exists on disk
     if (hasExistingSession()) {
-      console.log('[WA Auto] Session found — auto reconnecting in 3s...');
       global.waStatus = 'RECONNECTING';
-      setTimeout(() => {
-        if (!global.waClient) initClient(true);
-      }, 3000);
+      setTimeout(() => { if (!global.waClient) initClient(true); }, 5000);
     } else {
       global.waStatus = 'DISCONNECTED';
     }
   });
 
-  client.on('auth_failure', (msg) => {
+  client.on('auth_failure', async (msg) => {
     console.error('[WA Auto] Auth failure:', msg);
+    try { await client.destroy(); } catch {}
     global.waClient = undefined;
     global.waIsInitializing = false;
     global.waQrData = undefined;
     global.waStatus = 'DISCONNECTED';
   });
 
-  client.initialize().catch((err) => {
-    console.error('[WA Auto] Failed to initialize:', err);
+  client.initialize().catch(async (err) => {
+    console.error('[WA Auto] Init failed:', err);
+    try { await client.destroy(); } catch {}
     global.waClient = undefined;
     global.waIsInitializing = false;
     global.waStatus = 'DISCONNECTED';
   });
 }
 
-// ─── Helper: Format Phone ────────────────────────────────────────────────────
-function formatPhone(raw: string): string | null {
-  let phone = raw.replace(/\D/g, '');
-  if (phone.startsWith('0')) phone = '62' + phone.substring(1);
-  if (phone.length < 10 || phone.length > 15) return null;
-  return phone + '@c.us';
+// ─── Dismiss any popup dialog in WhatsApp Web ────────────────────────────────
+async function dismissPopup(): Promise<boolean> {
+  if (!global.waClient?.pupPage) return false;
+  const page = global.waClient.pupPage;
+  try {
+    // Check for confirm-popup (e.g. "Use Here", "Continue", logout confirmation)
+    const popup = await page.$('[data-testid="confirm-popup"], [data-testid="popup-contents"]').catch(() => null);
+    if (!popup) return false;
+
+    console.log('[WA Auto] Popup detected — attempting to dismiss...');
+
+    // Try clicking the primary/confirm button (usually the LAST button = "Use Here")
+    const allButtons = await page.$$('[data-testid="confirm-popup"] button, [data-testid="popup-contents"] button').catch(() => []);
+    if (allButtons.length > 0) {
+      const btn = allButtons[allButtons.length - 1]; // last button = primary action
+      await btn.click();
+      console.log(`[WA Auto] Clicked popup button (${allButtons.length} found)`);
+    } else {
+      // No button found — press Enter (default confirm)
+      await page.keyboard.press('Enter');
+      console.log('[WA Auto] Pressed Enter to dismiss popup');
+    }
+
+    await new Promise((r) => setTimeout(r, 2000));
+    return true;
+  } catch (e) {
+    console.warn('[WA Auto] dismissPopup error:', e);
+    return false;
+  }
 }
 
 // ─── GET Handler ─────────────────────────────────────────────────────────────
@@ -132,10 +150,20 @@ export async function GET(request: Request) {
   const action = searchParams.get('action');
 
   if (action === 'status') {
+    if (global.waClient && global.waStatus === 'CONNECTED') {
+      const ok = global.waClient.pupBrowser?.connected ?? false;
+      if (!ok) {
+        console.warn('[WA Auto] Browser disconnected. Cleaning up.');
+        global.waStatus = 'DISCONNECTED';
+        global.waClient.destroy().catch(() => {});
+        global.waClient = undefined;
+      }
+    }
     return NextResponse.json({
       status: global.waStatus || 'DISCONNECTED',
       qr: global.waQrData,
       hasSession: hasExistingSession(),
+      connectedNumber: global.waClient?.info?.wid?.user || null,
     });
   }
 
@@ -151,107 +179,153 @@ export async function POST(request: Request) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get('action');
 
-  // ── Start / Reconnect ──────────────────────────────────────────────────────
   if (action === 'start') {
     const isReconnect = hasExistingSession();
-    if (!global.waClient && !global.waIsInitializing) {
-      initClient(isReconnect);
-    }
+    if (!global.waClient && !global.waIsInitializing) initClient(isReconnect);
     return NextResponse.json({ success: true, isReconnect });
   }
 
-  // ── Logout ────────────────────────────────────────────────────────────────
   if (action === 'logout') {
     if (global.waClient) {
-      try {
-        await global.waClient.logout();
-      } catch (e) {
-        console.error('[WA Auto] Logout error:', e);
-      }
+      try { await global.waClient.logout(); await global.waClient.destroy(); }
+      catch { try { await global.waClient.destroy(); } catch {} }
     }
     global.waClient = undefined;
     global.waIsInitializing = false;
     global.waStatus = 'DISCONNECTED';
     global.waQrData = undefined;
-
-    // Remove session files so it doesn't auto reconnect
     try {
       const sessionDir = path.join(process.cwd(), '.wwebjs_auth', 'session-wa-auto-session');
       if (fs.existsSync(sessionDir)) {
         fs.rmSync(sessionDir, { recursive: true, force: true });
-        console.log('[WA Auto] Session files removed.');
+        console.log('[WA Auto] Session cleared.');
       }
-    } catch (e) {
-      console.error('[WA Auto] Failed to remove session files:', e);
-    }
-
-    return NextResponse.json({ success: true, message: 'Logged out and session cleared' });
+    } catch (e) { console.error('[WA Auto] Failed to clear session:', e); }
+    return NextResponse.json({ success: true, message: 'Logged out' });
   }
 
-  // ── Send Message ──────────────────────────────────────────────────────────
   if (action === 'send') {
+    // ── Guard ──
     if (global.waStatus !== 'CONNECTED' || !global.waClient) {
       return NextResponse.json({ success: false, error: 'WhatsApp not connected' }, { status: 400 });
     }
 
-    let body: { phone: string; text: string };
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 });
+    // ── Browser health ──
+    const isBrowserOk = global.waClient.pupBrowser?.connected === true;
+    const isPageOk = !(global.waClient.pupPage?.isClosed() ?? true);
+    if (!isBrowserOk || !isPageOk) {
+      global.waStatus = 'DISCONNECTED';
+      global.waClient.destroy().catch(() => {});
+      global.waClient = undefined;
+      return NextResponse.json({ success: false, error: 'WhatsApp browser disconnected' }, { status: 400 });
     }
+
+    // ── Dismiss any blocking popup BEFORE doing anything ──
+    const wasPopup = await dismissPopup();
+    if (wasPopup) {
+      console.log('[WA Auto] Popup dismissed. Waiting 2s for WA Web to stabilize...');
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+
+    // ── Parse request ──
+    let body: { phone: string; text: string };
+    try { body = await request.json(); }
+    catch { return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 }); }
 
     const { phone, text } = body;
     if (!phone || !text) {
-      return NextResponse.json({ success: false, error: 'Phone and text are required' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Phone and text required' }, { status: 400 });
     }
 
-    const formattedPhone = formatPhone(phone);
-    if (!formattedPhone) {
-      return NextResponse.json({ success: false, error: 'invalid_phone', skipped: true }, { status: 200 });
+    // ── Normalize phone ──
+    const cleanNumber = phone.replace(/\D/g, '');
+    let normalizedNumber = cleanNumber;
+    if (normalizedNumber.startsWith('0')) normalizedNumber = '62' + normalizedNumber.substring(1);
+    else if (normalizedNumber.startsWith('8')) normalizedNumber = '62' + normalizedNumber;
+    if (normalizedNumber.length < 10 || normalizedNumber.length > 15) {
+      return NextResponse.json({ success: false, error: 'invalid_phone', skipped: true });
     }
 
-    // ── Human-like: vary each message slightly with a random invisible unicode char ──
-    // This makes each message technically unique — avoids "identical bulk message" detection
-    const invisibleChars = ['\u200C', '\u200D', '\uFEFF', '\u200B'];
-    const randomInvisible = invisibleChars[Math.floor(Math.random() * invisibleChars.length)];
-    const variedText = text + randomInvisible;
+    const targetJid = normalizedNumber + '@c.us';
+    console.log(`[WA Auto] [SEND] -> ${normalizedNumber}`);
 
-    // ── Human-like: simulate typing duration (2–6 seconds) ──
-    const typingDuration = 2000 + Math.floor(Math.random() * 4000);
+    // ── Send ──
+    try {
+      const sentMsg = await global.waClient.sendMessage(targetJid, text);
 
-    // ── Send with 1 retry ──────────────────────────────────────────────────
-    let lastError = '';
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        if (!global.waClient || global.waStatus !== 'CONNECTED') {
-          return NextResponse.json({ success: false, error: 'WhatsApp disconnected mid-send' }, { status: 503 });
-        }
-
-        // Simulate "typing..." indicator in the chat before sending
-        try {
-          const chat = await global.waClient.getChatById(formattedPhone);
-          await chat.sendStateTyping();
-          await new Promise((r) => setTimeout(r, typingDuration));
-          await chat.clearState();
-        } catch {
-          // Chat may not exist yet (first message) — just wait the duration naturally
-          await new Promise((r) => setTimeout(r, typingDuration));
-        }
-
-        await global.waClient.sendMessage(formattedPhone, variedText);
-        return NextResponse.json({ success: true });
-      } catch (err: unknown) {
-        const error = err as Error;
-        lastError = error?.message || 'Unknown error';
-        console.error(`[WA Auto] Send attempt ${attempt + 1} failed:`, lastError);
-        if (attempt === 0) {
-          await new Promise((r) => setTimeout(r, 5000));
-        }
+      if (!sentMsg?.id) {
+        throw new Error('sendMessage() returned null/invalid object');
       }
-    }
 
-    return NextResponse.json({ success: false, error: lastError }, { status: 500 });
+      const msgId = sentMsg.id.id;
+      const initialAck = sentMsg.ack;
+      console.log(`[WA Auto] [SEND] sendMessage OK: id=${msgId} ack=${initialAck} to=${sentMsg.to}`);
+
+      // If ack is already -1 immediately, report error
+      if (initialAck === -1) {
+        console.error(`[WA Auto] [SEND] Immediate ACK_ERROR (-1). Server rejected.`);
+        return NextResponse.json({
+          success: false,
+          error: 'ACK_ERROR (-1): WhatsApp server rejected the message. Session may need re-login.',
+          ack: -1,
+        });
+      }
+
+      // Wait up to 12s for ack >= 1
+      let lastAck = initialAck;
+      let acknowledged = false;
+      const deadline = Date.now() + 12000;
+      while (Date.now() < deadline) {
+        // Re-read ack from the message object (it updates in-place)
+        try {
+          const updatedAck = (sentMsg as unknown as { ack: number }).ack;
+          if (updatedAck !== lastAck) {
+            console.log(`[WA Auto] [SEND] ACK: ${lastAck} -> ${updatedAck}`);
+            lastAck = updatedAck;
+          }
+        } catch {}
+        if (lastAck === -1) {
+          console.error(`[WA Auto] [SEND] ACK_ERROR (-1) during wait.`);
+          break;
+        }
+        if (lastAck >= 1) { acknowledged = true; break; }
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+
+      if (acknowledged) {
+        console.log(`[WA Auto] [SEND] Delivered! ack=${lastAck}`);
+        return NextResponse.json({ success: true, messageId: msgId, ack: lastAck });
+      }
+
+      if (lastAck === -1) {
+        return NextResponse.json({
+          success: false,
+          error: 'ACK_ERROR (-1): Server rejected. Try logging out and scanning QR again.',
+          ack: -1,
+        });
+      }
+
+      // ack=0 after 12s: message queued but not confirmed. Treat as likely-sent.
+      console.warn(`[WA Auto] [SEND] ack=0 after 12s (queued but unconfirmed). Treating as sent.`);
+      return NextResponse.json({ success: true, messageId: msgId, ack: 0, note: 'queued' });
+
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error(`[WA Auto] [SEND] Exception: ${error?.message}`);
+
+      const isFatal = (error?.message || '').includes('Target closed') ||
+        (error?.message || '').includes('Protocol error') ||
+        !(global.waClient?.pupBrowser?.connected ?? false);
+
+      if (isFatal) {
+        global.waStatus = 'DISCONNECTED';
+        global.waClient?.destroy().catch(() => {});
+        global.waClient = undefined;
+        return NextResponse.json({ success: false, error: `Browser crashed: ${error?.message}` }, { status: 503 });
+      }
+
+      return NextResponse.json({ success: false, error: error?.message || 'Unknown error' });
+    }
   }
 
   return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

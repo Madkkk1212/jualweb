@@ -73,6 +73,7 @@ export default function WhatsAppAutoPage() {
   const [waStatus, setWaStatus] = useState<WaStatus>('DISCONNECTED');
   const [waQr, setWaQr] = useState<string>("");
   const [hasSession, setHasSession] = useState(false);
+  const [connectedNumber, setConnectedNumber] = useState<string | null>(null);
 
   // Filters & Selection
   const [searchQuery, setSearchQuery] = useState("");
@@ -186,6 +187,7 @@ export default function WhatsAppAutoPage() {
       setWaStatus(data.status);
       setHasSession(data.hasSession);
       if (data.qr) setWaQr(data.qr);
+      setConnectedNumber(data.connectedNumber || null);
 
       // Auto-start if session exists and currently disconnected
       if (autoStart && data.status === 'DISCONNECTED' && data.hasSession) {
@@ -318,19 +320,28 @@ export default function WhatsAppAutoPage() {
 
   // ─── Auto Send Loop ─────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!isAutoRunning || !isSendingMode || waStatus !== 'CONNECTED') return;
+    if (!isAutoRunning || !isSendingMode || waStatus !== 'CONNECTED') {
+      console.log(`[WA Auto Frontend] Loop skipped. isAutoRunning: ${isAutoRunning}, isSendingMode: ${isSendingMode}, waStatus: ${waStatus}`);
+      return;
+    }
     let alive = true;
 
     const runLoop = async () => {
+      console.log(`[WA Auto Frontend] Memulai pemrosesan antrean. Index awal: ${currentIndex}/${sendQueue.length}`);
       for (let i = currentIndex; i < sendQueue.length; i++) {
         if (!alive) break;
-        if (!isAutoRunning) break;
+        if (!isAutoRunning) {
+          console.log("[WA Auto Frontend] Pemrosesan antrean dijeda.");
+          break;
+        }
 
         const contact = sendQueue[i];
+        console.log(`[WA Auto Frontend] [QUEUE #${i + 1}] Memulai pemrosesan untuk: ${contact.name} (${contact.phone})`);
 
         // Skip already processed
         const curStatus = sentStatus[contact.id];
         if (curStatus === 'success' || curStatus === 'skipped') {
+          console.log(`[WA Auto Frontend] [QUEUE #${i + 1}] Kontak ini sudah memiliki status '${curStatus}'. Dilewati.`);
           setCurrentIndex(i + 1);
           continue;
         }
@@ -339,7 +350,7 @@ export default function WhatsAppAutoPage() {
         if (i > 0 && i % batchSize === 0) {
           const breakSecs = batchBreakMinutes * 60;
           setIsBatchBreak(true);
-          console.log(`[WA Auto] Batch break: pausing ${batchBreakMinutes} minutes after ${i} messages`);
+          console.log(`[WA Auto Frontend] [BATCH BREAK] Istirahat selama ${batchBreakMinutes} menit setelah mengirim ${i} pesan.`);
           for (let s = breakSecs; s > 0; s--) {
             if (!alive || !isAutoRunning) break;
             setBatchBreakCountdown(s);
@@ -351,17 +362,20 @@ export default function WhatsAppAutoPage() {
         if (!alive || !isAutoRunning) break;
 
         // Mark as sending
+        console.log(`[WA Auto Frontend] [QUEUE #${i + 1}] Menandai status pengiriman sebagai 'sending'`);
         setSentStatus(prev => ({ ...prev, [contact.id]: 'sending' }));
         setTimeout(() => sendingItemRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
 
         const template = templates.find(t => t.id === selectedTemplateId);
         if (!template) {
+          console.error(`[WA Auto Frontend] [QUEUE #${i + 1}] Error: Template dengan ID ${selectedTemplateId} tidak ditemukan.`);
           setSentStatus(prev => ({ ...prev, [contact.id]: 'error' }));
           setCurrentIndex(i + 1);
           continue;
         }
 
         const msg = buildMessage(contact, template.content);
+        console.log(`[WA Auto Frontend] [QUEUE #${i + 1}] Menghubungi API backend untuk mengirim pesan ke ${contact.phone}...`);
 
         try {
           const res = await fetch('/api/wa-auto?action=send', {
@@ -369,26 +383,39 @@ export default function WhatsAppAutoPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone: contact.phone, text: msg }),
           });
+          
+          console.log(`[WA Auto Frontend] [QUEUE #${i + 1}] Mendapatkan response HTTP ${res.status}`);
           const data = await res.json();
+          console.log(`[WA Auto Frontend] [QUEUE #${i + 1}] Data response:`, data);
 
           if (!alive) break;
 
           if (data.success) {
+            console.log(`[WA Auto Frontend] [QUEUE #${i + 1}] SUKSES mengirim pesan ke ${contact.name}. ID Pesan: ${data.messageId}`);
             setSentStatus(prev => ({ ...prev, [contact.id]: 'success' }));
             setSessionSentCount(prev => prev + 1);
+            
             const historyData = {
               contact_name: contact.name, contact_phone: contact.phone,
               template_name: template.name, user_id: userId, sent_by: userId,
             };
-            supabase.from("whatsapp_send_history").insert([historyData]).select().then(({ data: inserted }) => {
-              if (inserted) setHistory(prev => [inserted[0], ...prev]);
+            supabase.from("whatsapp_send_history").insert([historyData]).select().then(({ data: inserted, error }) => {
+              if (error) console.error("[WA Auto Frontend] Gagal menyimpan riwayat ke Supabase:", error);
+              if (inserted) {
+                console.log("[WA Auto Frontend] Riwayat tersimpan di Supabase:", inserted[0]);
+                setHistory(prev => [inserted[0], ...prev]);
+              }
             });
           } else if (data.skipped) {
+            console.warn(`[WA Auto Frontend] [QUEUE #${i + 1}] DILEWATI: ${data.error}`);
             setSentStatus(prev => ({ ...prev, [contact.id]: 'skipped' }));
           } else {
+            console.error(`[WA Auto Frontend] [QUEUE #${i + 1}] GAGAL: ${data.error}`);
             setSentStatus(prev => ({ ...prev, [contact.id]: 'error' }));
           }
-        } catch {
+        } catch (fetchErr) {
+          const error = fetchErr as Error;
+          console.error(`[WA Auto Frontend] [QUEUE #${i + 1}] Exception ditangkap saat memanggil API:`, error.message, error.stack);
           if (alive) setSentStatus(prev => ({ ...prev, [contact.id]: 'error' }));
         }
 
@@ -397,9 +424,9 @@ export default function WhatsAppAutoPage() {
 
         // ── Delay: base + large random range ────────────────────────────────
         if (i < sendQueue.length - 1) {
-          // Random between delaySeconds and delaySeconds*2 (very wide range)
           const randomExtra = Math.floor(Math.random() * delaySeconds);
           const delaySecs = Math.max(20, delaySeconds) + randomExtra;
+          console.log(`[WA Auto Frontend] [DELAY] Menunggu jeda selama ${delaySecs} detik sebelum kontak berikutnya.`);
           for (let s = delaySecs; s > 0; s--) {
             if (!alive) break;
             setCountdown(s);
@@ -410,6 +437,7 @@ export default function WhatsAppAutoPage() {
       }
 
       if (alive) {
+        console.log("[WA Auto Frontend] Pemrosesan antrean selesai.");
         setIsAutoRunning(false);
         setCountdown(null);
         setIsBatchBreak(false);
@@ -423,22 +451,38 @@ export default function WhatsAppAutoPage() {
 
   // ─── Start Blast ─────────────────────────────────────────────────────────────
   const startAutoBlast = () => {
-    if (!selectedTemplateId) return alert("Pilih template pesan dulu!");
+    console.log("[WA Auto Frontend] Tombol Kirim (startAutoBlast) diklik");
+    if (!selectedTemplateId) {
+      console.warn("[WA Auto Frontend] Gagal memulai: Template pesan belum dipilih");
+      return alert("Pilih template pesan dulu!");
+    }
     const template = templates.find(t => t.id === selectedTemplateId);
-    if (!template) return;
+    if (!template) {
+      console.error("[WA Auto Frontend] Gagal memulai: Template tidak ditemukan");
+      return;
+    }
 
     const usedWebVars = Array.from(new Set((template.content || "").match(/{website\d+}/g) || [])).map(w => w.replace(/[{}]/g, ''));
     if (usedWebVars.some(w => !selectedWebs[w])) {
+      console.warn("[WA Auto Frontend] Gagal memulai: Tautan website variabel belum lengkap");
       return alert("Harap pilih tautan website untuk semua variabel terlebih dahulu!");
     }
 
     let queue = contacts.filter(c => selectedContacts.has(c.id));
-    if (queue.length === 0) return alert("Pilih minimal 1 kontak!");
+    console.log(`[WA Auto Frontend] Jumlah kontak yang dipilih untuk dikirim: ${queue.length}`);
+    if (queue.length === 0) {
+      console.warn("[WA Auto Frontend] Gagal memulai: Tidak ada kontak terpilih");
+      return alert("Pilih minimal 1 kontak!");
+    }
 
     // Shuffle contact order if enabled (avoids sequential pattern detection)
     if (shuffleContacts) {
       queue = [...queue].sort(() => Math.random() - 0.5);
+      console.log("[WA Auto Frontend] Urutan antrean dikocok (shuffled)");
     }
+
+    console.log("[WA Auto Frontend] Queue berhasil dibuat:", queue.map(c => ({ id: c.id, name: c.name, phone: c.phone })));
+    console.log(`[WA Auto Frontend] Status WhatsApp Web saat ini: ${waStatus}`);
 
     setSendQueue(queue);
     const initialStatus: Record<string, SendStatus> = {};
@@ -764,10 +808,15 @@ export default function WhatsAppAutoPage() {
 
           {/* Connection status */}
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-1.5">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               <span className="text-xs font-bold text-green-700">WA Terhubung</span>
             </div>
+            {connectedNumber && (
+              <p className="text-[10px] text-green-600 font-semibold mb-2 font-mono break-all">
+                No: +{connectedNumber}
+              </p>
+            )}
             <button
               onClick={handleLogoutWa}
               className="text-[10px] w-full py-1.5 border border-green-300 rounded-lg text-green-800 font-semibold hover:bg-green-100 transition-colors"

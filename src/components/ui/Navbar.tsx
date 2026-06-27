@@ -5,10 +5,13 @@ import { Instagram } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "./Button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { t } = useLanguage();
+  const tr = t("navbar");
 
   useEffect(() => {
     setMounted(true);
@@ -18,13 +21,13 @@ export const Navbar = () => {
   }, []);
 
   const navLinks = [
-    { name: "Beranda", href: "/" },
-    { name: "Portofolio", href: "/portfolio" },
-    { name: "Solusi", href: "/services" },
-    { name: "Harga", href: "/pricing" },
-    { name: "Proses", href: "/process" },
-    { name: "FAQ", href: "/faq" },
-    { name: "Kontak", href: "/contact" },
+    { name: tr.home, href: "/" },
+    { name: tr.portfolio, href: "/portfolio" },
+    { name: tr.services, href: "/services" },
+    { name: tr.pricing, href: "/pricing" },
+    { name: tr.process, href: "/process" },
+    { name: tr.faq, href: "/faq" },
+    { name: tr.contact, href: "/contact" },
   ];
 
   if (!mounted) return null;
@@ -33,8 +36,8 @@ export const Navbar = () => {
     <nav
       className={cn(
         "fixed top-3 sm:top-4 left-1/2 z-50 transition-all duration-500 ease-out w-[95%] max-w-7xl",
-        isScrolled 
-          ? "opacity-100 -translate-x-1/2 translate-y-0" 
+        isScrolled
+          ? "opacity-100 -translate-x-1/2 translate-y-0"
           : "opacity-0 -translate-x-1/2 -translate-y-[150%] pointer-events-none"
       )}
     >
@@ -54,7 +57,7 @@ export const Navbar = () => {
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
-              key={link.name}
+              key={link.href}
               href={link.href}
               className="text-sm font-medium text-foreground/60 hover:text-accent-blue transition-colors"
             >
@@ -74,10 +77,9 @@ export const Navbar = () => {
 
           <Link href="https://wa.me/6289514618737" target="_blank" className="hidden sm:block">
             <Button size="sm" variant="primary">
-              Chat WhatsApp
+              {tr.cta}
             </Button>
           </Link>
-
         </div>
       </div>
     </nav>

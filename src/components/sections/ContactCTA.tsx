@@ -5,15 +5,21 @@ import { motion } from "framer-motion";
 import { Button } from "../ui/Button";
 import Link from "next/link";
 import { Instagram, ArrowRight, MessageCircle, ShieldCheck, Zap, Clock } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const instagramUrl = "https://www.instagram.com/lumaspace.web.id/";
 const whatsappUrl = "https://wa.me/6289514618737";
 
+const trustIcons = [Clock, Zap, ShieldCheck];
+
 export const ContactCTA = () => {
+  const { t } = useLanguage();
+  const tr = t("contactCta");
+
   const trustSignals = [
-    { icon: Clock, text: "Respon < 10 Menit" },
-    { icon: Zap, text: "Konsultasi Gratis" },
-    { icon: ShieldCheck, text: "Garansi Profesional" },
+    { icon: trustIcons[0], text: tr.trust1 },
+    { icon: trustIcons[1], text: tr.trust2 },
+    { icon: trustIcons[2], text: tr.trust3 },
   ];
 
   return (
@@ -39,14 +45,13 @@ export const ContactCTA = () => {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-green"></span>
           </span>
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-accent-green">Online Sekarang</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-accent-green">{tr.onlineNow}</span>
         </div>
 
         <h2 className="text-4xl md:text-7xl font-black text-foreground mb-8 tracking-tighter leading-[0.95]">
-          Optimasi Website Untuk <br />
-          <span className="text-gradient-blue text-glow-blue italic">Mendatangkan Calon Pembeli</span>
+          {tr.heading} <br />
+          <span className="text-gradient-blue text-glow-blue italic">{tr.headingHighlight}</span>
         </h2>
-
 
         {/* Trust Signals Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-14 max-w-4xl mx-auto">
@@ -62,20 +67,20 @@ export const ContactCTA = () => {
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
           <Link href={whatsappUrl} target="_blank" className="w-full sm:w-auto">
             <Button variant="primary" size="lg" className="w-full h-16 px-10 shadow-premium hover:shadow-hover group">
-              Chat WhatsApp Sekarang 
+              {tr.cta1}
               <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
           <Link href={instagramUrl} target="_blank" className="w-full sm:w-auto">
             <Button variant="outline" size="lg" className="w-full h-16 px-10 border-border/80 hover:bg-foreground/5">
               <Instagram className="h-5 w-5 mr-2" />
-              IG Portfolio @lumaspace.web.id
+              {tr.cta2}
             </Button>
           </Link>
         </div>
 
         <div className="mt-12 text-xs font-bold uppercase tracking-[0.2em] text-foreground/30">
-          Lebih dari 40+ Bisnis telah mempercayakan kehadiran digital mereka kepada kami.
+          {tr.footnote}
         </div>
       </motion.div>
     </section>

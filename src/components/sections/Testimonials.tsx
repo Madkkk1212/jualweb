@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Star, Quote, User } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type Review = {
   name: string;
@@ -37,76 +38,26 @@ const TestimonialCard = ({ review }: { review: Review }) => (
 );
 
 export const Testimonials = () => {
-  const reviews: Review[] = [
-    {
-      name: "Rina Amelia",
-      role: "Owner Brand Skincare",
-      content: "Website yang dibuat benar-benar menaikkan citra brand kami. Saat customer buka, tampilannya langsung terasa premium dan lebih meyakinkan untuk order.",
-      rating: 5,
-    },
-    {
-      name: "Budi Santoso",
-      role: "Owner Kuliner",
-      content: "Setelah pakai website ini, pelanggan lebih gampang lihat menu dan langsung chat untuk pesan. Tampilannya juga jauh lebih profesional daripada cuma pakai katalog chat.",
-      rating: 5,
-    },
-    {
-      name: "Dewi Kartika",
-      role: "Founder Catering",
-      content: "Saya suka karena prosesnya cepat, hasilnya rapi, dan copy websitenya terasa menjual. Banyak calon klien bilang usaha kami terlihat jauh lebih terpercaya.",
-      rating: 5,
-    },
-    {
-      name: "David Chen",
-      role: "Manager Restaurant",
-      content: "Desain website yang dibuat sangat elegan dan premium. Sebelum datang ke restoran, tamu sudah dapat kesan kalau brand kami serius dan berkualitas.",
-      rating: 5,
-    },
-    {
-      name: "Ahmad Rizky",
-      role: "Owner Platform Properti",
-      content: "Tampilan website modern, cepat, dan enak dipakai. Yang paling terasa, calon pengguna lebih percaya karena platform kami terlihat rapi dan profesional.",
-      rating: 5,
-    },
-    {
-      name: "Rudianto",
-      role: "Owner UMKM Jambi",
-      content: "Website buatan LumaSpace sangat membantu closing. Dari HP pelanggan pun tetap cepat dibuka dan tampilannya bikin usaha kami terlihat lebih serius.",
-      rating: 5,
-    },
-    {
-      name: "Maya Putri",
-      role: "Founder Retail",
-      content: "Sangat profesional. Katalog produk kami sekarang terlihat jauh lebih berkelas dibanding sebelumnya, jadi lebih mudah dipakai saat promosi ke customer.",
-      rating: 5,
-    },
-    {
-      name: "Andi Saputra",
-      role: "Direktur Perusahaan",
-      content: "Prosesnya cepat dan transparan. Timnya paham bagaimana membuat website yang tidak hanya bagus, tapi juga mendukung branding perusahaan di mata calon klien.",
-      rating: 5,
-    },
-    {
-      name: "Siti Rahma",
-      role: "Owner Rental Busana",
-      content: "Galeri produk jadi jauh lebih menarik. Banyak pelanggan bilang websitenya enak dilihat dan membuat mereka lebih yakin untuk sewa ke tempat kami.",
-      rating: 5,
-    },
-  ];
+  const { t } = useLanguage();
+  const tr = t("testimonials");
+
+  const reviews: Review[] = tr.reviews.map((r) => ({
+    ...r,
+    rating: 5,
+  }));
 
   return (
     <section id="testimonials" className="py-32 px-6 relative overflow-hidden bg-transparent">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-24">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-blue/5 border border-accent-blue/10 mb-6 font-bold text-xs text-accent-blue uppercase tracking-widest">
-            Testimoni Klien
+            {tr.badge}
           </div>
           <h2 className="text-4xl md:text-7xl font-black text-foreground mb-8 tracking-tighter">
-            Apa Kata <span className="text-gradient-blue text-glow-blue underline decoration-accent-blue/10">Klien Kami.</span>
+            {tr.heading} <span className="text-gradient-blue text-glow-blue underline decoration-accent-blue/10">{tr.headingHighlight}</span>
           </h2>
           <p className="text-lg md:text-xl text-foreground/60 max-w-2xl mx-auto font-medium">
-            Testimoni dari pemilik bisnis yang ingin tampil lebih meyakinkan,
-            lebih profesional, dan lebih siap bersaing secara digital.
+            {tr.subtitle}
           </p>
         </div>
 

@@ -6,16 +6,24 @@ import { Home, Briefcase, Tag, Layers, Instagram } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const BottomNav = () => {
   const pathname = usePathname();
+  const { t } = useLanguage();
+  const tr = t("bottomNav");
 
   const navItems = [
-    { name: "Beranda", href: "/", icon: Home, external: false },
-    { name: "Layanan", href: "/services", icon: Layers, external: false },
-    { name: "Harga", href: "/pricing", icon: Tag, external: false },
-    { name: "Portofolio", href: "/portfolio", icon: Briefcase, external: false },
-    { name: "Instagram", href: "https://www.instagram.com/lumaspace.web.id/", icon: Instagram, external: true },
+    { name: tr.home, href: "/", icon: Home, external: false },
+    { name: tr.services, href: "/services", icon: Layers, external: false },
+    { name: tr.pricing, href: "/pricing", icon: Tag, external: false },
+    { name: tr.portfolio, href: "/portfolio", icon: Briefcase, external: false },
+    {
+      name: tr.instagram,
+      href: "https://www.instagram.com/lumaspace.web.id/",
+      icon: Instagram,
+      external: true,
+    },
   ];
 
   return (
@@ -27,33 +35,43 @@ export const BottomNav = () => {
       >
         {navItems.map((item) => {
           const isActive = !item.external && pathname === item.href;
-          const isInstagram = item.name === "Instagram";
+          const isInstagram = item.name === tr.instagram;
           return (
             <Link
-              key={item.name}
+              key={item.href}
               href={item.href}
               target={item.external ? "_blank" : undefined}
               rel={item.external ? "noreferrer" : undefined}
               className="relative flex flex-col items-center justify-center py-2 px-1 transition-all flex-1"
             >
-              <div className={cn(
-                "p-2 rounded-xl transition-all duration-300",
-                isInstagram
-                  ? "text-purple-400"
-                  : isActive ? "text-accent-blue" : "text-foreground/40"
-              )}>
-                <item.icon className={cn(
-                  "h-6 w-6 transition-transform duration-300",
-                  isActive || isInstagram ? "scale-110" : "scale-100"
-                )} />
+              <div
+                className={cn(
+                  "p-2 rounded-xl transition-all duration-300",
+                  isInstagram
+                    ? "text-purple-400"
+                    : isActive
+                    ? "text-accent-blue"
+                    : "text-foreground/40"
+                )}
+              >
+                <item.icon
+                  className={cn(
+                    "h-6 w-6 transition-transform duration-300",
+                    isActive || isInstagram ? "scale-110" : "scale-100"
+                  )}
+                />
               </div>
-              
-              <span className={cn(
-                "text-[10px] font-bold uppercase tracking-widest transition-all duration-300",
-                isInstagram
-                  ? "opacity-100 translate-y-0 text-purple-400"
-                  : isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
-              )}>
+
+              <span
+                className={cn(
+                  "text-[10px] font-bold uppercase tracking-widest transition-all duration-300",
+                  isInstagram
+                    ? "opacity-100 translate-y-0 text-purple-400"
+                    : isActive
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-1"
+                )}
+              >
                 {item.name}
               </span>
 

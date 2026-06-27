@@ -6,10 +6,12 @@ import { Plus, Minus, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/Button";
 import { siteConfig } from "@/lib/seo";
-import { faqs } from "@/data/faqs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const FAQ = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const { t } = useLanguage();
+  const tr = t("faq");
 
   return (
     <section id="faq" className="py-12 md:py-32 px-6 bg-transparent relative overflow-hidden">
@@ -18,24 +20,24 @@ export const FAQ = () => {
 
       <div className="max-w-4xl mx-auto relative z-10">
         <div className="text-center mb-24">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-blue/5 border border-accent-blue/10 mb-6 font-bold text-xs text-accent-blue uppercase tracking-widest"
           >
-            Tanya Jawab
+            {tr.badge}
           </motion.div>
           <h2 className="text-4xl md:text-8xl font-black text-foreground mb-8 tracking-tighter leading-[0.9]">
-            Ada <br />
-            <span className="text-gradient-blue text-glow-blue underline decoration-accent-blue/10 italic">Pertanyaan?</span>
+            {tr.heading} <br />
+            <span className="text-gradient-blue text-glow-blue underline decoration-accent-blue/10 italic">{tr.headingHighlight}</span>
           </h2>
           <p className="text-lg md:text-2xl text-foreground/50 max-w-2xl mx-auto font-medium leading-relaxed">
-            Temukan jawaban untuk pertanyaan yang paling sering diajukan mengenai layanan kami.
+            {tr.subtitle}
           </p>
         </div>
 
         <div className="space-y-4">
-          {faqs.map((item, i) => (
+          {tr.items.map((item, i) => (
             <div
               key={i}
               className={`rounded-[2.5rem] border transition-all duration-500 overflow-hidden ${
@@ -79,16 +81,16 @@ export const FAQ = () => {
           ))}
         </div>
 
-        <motion.div 
-           initial={{ opacity: 0, y: 20 }}
-           whileInView={{ opacity: 1, y: 0 }}
-           className="mt-20 text-center p-12 rounded-[3rem] bg-foreground/[0.02] border border-border/40"
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          className="mt-20 text-center p-12 rounded-[3rem] bg-foreground/[0.02] border border-border/40"
         >
-          <h3 className="text-2xl font-bold text-foreground mb-4">Masih punya pertanyaan lain?</h3>
-          <p className="text-lg text-foreground/50 mb-8 font-medium">Tim kami siap membantu menjawab keraguan Anda secara langsung via WhatsApp.</p>
+          <h3 className="text-2xl font-bold text-foreground mb-4">{tr.stillHaveQ}</h3>
+          <p className="text-lg text-foreground/50 mb-8 font-medium">{tr.stillHaveQDesc}</p>
           <Link href={siteConfig.whatsapp} target="_blank">
             <Button variant="outline" size="lg" className="rounded-2xl px-12 border-border/60 hover:border-accent-blue/40 font-black tracking-tight">
-              Tanya via WhatsApp
+              {tr.askWa}
             </Button>
           </Link>
         </motion.div>
